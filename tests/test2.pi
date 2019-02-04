@@ -1,24 +1,25 @@
 % test implementation L_BR primitives.
 
-% se avessi il tipo dato relazioni dove identifico le due coppie, potrei provare ad
-%  implementare dom R ad esempio, che data una relazione R trova tutti gli x tali che (x, y) \in R.
+% se avessi il tipo dato relazioni dove identifico le due coppie, potrei
+%  provare ad implementare dom R ad esempio, che data una relazione R trova
+%  tutti gli x tali che (x, y) \in R.
 
 % relation is implemented as a picat map.
 
 
 
 %/* 
-% Retrives the domain of {@code R}.
+% Retrieves the domain of {@code R}.
 %*/
 dom(R) = R.keys().
 
 %/* 
-% Retrives the domain of {@code R}.
+% Retrieves the range of {@code R}.
 %*/
 ran(R) = R.values().
 
 %/* 
-% Retrives the domain domain restriction of A on R.
+% Retrieves the domain restriction of A on R.
 %
 % @param :map R
 % @param :set A

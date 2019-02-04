@@ -20,16 +20,19 @@ setlog =>
 %*/
 top_level =>
 	print("{log} => "),
-	Fi = read_file_terms(),
+	Terms = read_file_terms(),
 	% debug terms read.
-	log_d("constraints read: " ++ Fi.to_string),
-	solve(Fi).
+	log_d("constraints read: " ++ Terms.to_string),
+	Terms = f(X,Y). %,
+	
+	%solve(Terms).
 	%Constraints = solve(Goal),
 	%println(Constraints.to_string).
 
 %solve(Goal) = Constraints =>
 %	TODO
 
+f(X,Y) => log_d(X),log_d(Y).
 
 % goal: 
 % - leggere le formule L_BR e tradurle in un formato interno (termini picat).
@@ -39,21 +42,21 @@ top_level =>
 %/*
 % SAT for BR formulas.
 %*/
-solve(Fi) =>
-	Fi := sort_infer(Fi)
-	do
-		Fi1 := Fi,
-		do
-			Fi2 := Fi,
-			Fi := step(Fi)
-		while(Fi = Fi2)	
-	while(Fi = Fi1).
+%solve(Fi) =>
+%	Fi := sort_infer(Fi)
+%	do
+%		Fi1 := Fi,
+%		do
+%			Fi2 := Fi,
+%			Fi := step(Fi)
+%		while(Fi = Fi2)	
+%	while(Fi = Fi1).
 	
 
-sort_infer(Fi).
+%sort_infer(Fi).
 
-solve([X = Y]), X = Y => true.
-solve([X = Y]), X != Y => false.
+solve(C), C.head() == C.tail() => true.
+solve(C), X !== Y => false.
 
 log_d(Value) =>
 	print("[DEBUG] "),
