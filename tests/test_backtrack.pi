@@ -1,0 +1,19 @@
+import cp.
+
+main =>
+    test_abs.
+
+abs(X, Y), X #>= 0 ?=> Y #= X.
+abs(X, Y), X #< 0 ?=> Y #= -X.
+
+% reverse a string with nondet.
+%reverse(Xs@[], Y)
+
+test_abs =>
+    % for real backtracking type form console: $ abs(X, 5)
+    abs(5, Y),
+    println(Y),
+    abs(-5, Y),
+    println(Y),
+    abs(X, 5),
+    println(X). % prints the first solution.
