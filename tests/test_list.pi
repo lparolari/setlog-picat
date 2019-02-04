@@ -1,0 +1,17 @@
+main =>
+    test_list_comprehension,
+    test_list_concat.
+
+test_list_comprehension =>
+    println("****** test_list_comprehension"),
+    L = [ X*X : X in 1..10 ],
+    println(L).
+
+test_list_concat =>
+    println("****** test_list_concat"),
+    L1 = [ X*X : X in 1..10 ],
+    L2 = [ X**X : X in 1..10 ],
+    println("L1: " ++ L1.to_string),
+    println("L2: " ++ L2.to_string),
+    L = L1++L2,
+    println("L:  " ++ L.to_string).
