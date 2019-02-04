@@ -1,0 +1,27 @@
+main =>
+    test_print,
+    test_write,
+    test_string_concat,
+    test_to_string.
+
+test_print =>
+    println("****** test_print"),
+    L = 1..10,
+    Struct = $test(a,b),
+    Set = new_set(L),
+    Map = new_map([a=1,b=2]),
+    println("Printing a string with concat: " ++ "concat"),
+    println("Printing a list with concat: " ++ L.to_string),
+    println("Printing a list with concat and to_string: " ++ L.to_string),
+    println("Printing a struct with to_string: " ++ Struct.to_string),
+    println("Printing a set with to_string: " ++ Set.to_string),
+    println("Printing a map with to_string: " ++ Map.to_string).
+
+test_write =>
+    println("****** test_write").
+
+test_string_concat =>
+    println("****** test_string_concat").
+
+test_to_string =>
+    println("****** test_to_string").
