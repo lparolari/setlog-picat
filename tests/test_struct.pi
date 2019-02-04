@@ -1,0 +1,47 @@
+main =>
+    test_struct_with_new,
+    test_struct_with_dollar,
+    test_struct_arity,
+    test_struct_list_conversion.
+
+%/*
+% Creates a struct with new keyword and access first and second elements.
+%*/
+test_struct_with_new =>
+    println("****** test_struct_new"),
+    X = new_struct(neq, [a,b]),
+    X1 = X[1],
+    X2 = X[2],
+    println(X),
+    println(X1),
+    println(X2).
+
+%/*
+% Creates a struct with $ idiom and access first and second elements.
+%*/
+test_struct_with_dollar =>
+    println("****** test_struct_with_dollar"),
+    X = $neq(a,b),
+    X1 = X[1],
+    X2 = X[2],
+    println(X),
+    println(X1),
+    println(X2).
+
+%/*
+% Creates a struct and prints it's length.
+%*/
+test_struct_arity =>
+    println("****** test_struct_arity"),
+    X = $neq(a,b),
+    println(X.arity),
+    println(X.length).
+
+%/*
+% Struct to_list test usage.
+%*/
+test_struct_list_conversion =>
+    println("****** test_struct_list_conversion"),
+    X = $neq(a,b),
+    L = X.to_list,
+    println(L).
