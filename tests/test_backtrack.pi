@@ -1,19 +1,35 @@
 import cp.
 
 main =>
-    test_abs.
+    test_abs,
+    test_reverse.
 
 abs(X, Y), X #>= 0 ?=> Y #= X.
 abs(X, Y), X #< 0 ?=> Y #= -X.
 
-% reverse a string with nondet.
-%reverse(Xs@[], Y)
+palindrome([], 0) => true.
+palindrome([], D) => fail.
+
+palindrome([X|Xs], D) ?=> T = D + 1, palindrome(Xs, T).
+
+
+% reverse a string nondet.
+% nondet not working as expected.
+reverse([], Y) ?=> Y #= [].
+reverse([X|Xs], Y) ?=> reverse(Xs, T), Y = [T,X].
 
 test_abs =>
     % for real backtracking type form console: $ abs(X, 5)
+    println("****** test_abs"),
     abs(5, Y),
     println(Y),
     abs(-5, Y),
     println(Y),
     abs(X, 5),
     println(X). % prints the first solution.
+
+test_reverse => 
+    println("****** test_reverse"),
+    X = [1,2,3],
+    reverse(X, Y),
+    println(Y.to_string).
