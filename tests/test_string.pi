@@ -1,11 +1,11 @@
 main =>
+    test_concat,
     test_print,
-    test_write,
-    test_string_concat,
-    test_to_string.
+    test_write.
 
-test_print =>
-    println("****** test_print"),
+% concat example usage in println predicates.
+test_concat =>
+    println("****** test_concat"),
     L = 1..10,
     Struct = $test(a,b),
     Set = new_set(L),
@@ -17,11 +17,32 @@ test_print =>
     println("Printing a set with to_string: " ++ Set.to_string),
     println("Printing a map with to_string: " ++ Map.to_string).
 
+% print/println example usage. 
+test_print => 
+    println("****** test_print"),
+    L = 1..10,
+    Struct = $test(a,b),
+    Set = new_set(L),
+    Map = new_map([a=1,b=2]),
+    print("Printing a string: "),  println("concat"),
+    print("Printing a list: "), println(L),
+    print("Printing a list with X.to_string.writeln: "), L.to_string.println,
+    print("Printing a list with writeln(X.to_string): "), println(L.to_string),
+    print("Printing a struct: "), println(Struct),
+    print("Printing a set: "), println(Set),
+    print("Printing a map: "), println(Map).
+
+% write/writeln example usage.
 test_write =>
-    println("****** test_write").
-
-test_string_concat =>
-    println("****** test_string_concat").
-
-test_to_string =>
-    println("****** test_to_string").
+    println("****** test_write"),
+    L = 1..10,
+    Struct = $test(a,b),
+    Set = new_set(L),
+    Map = new_map([a=1,b=2]),
+    print("Writing a string: "),  writeln("concat"),
+    print("Writing a list: "), writeln(L),
+    print("Writing a list with X.to_string.writeln: "), L.to_string.writeln,
+    print("Writing a list with writeln(X.to_string): "), writeln(L.to_string),
+    print("Writing a struct: "), writeln(Struct),
+    print("Writing a set: "), writeln(Set),
+    print("Writing a map: "), writeln(Map).
