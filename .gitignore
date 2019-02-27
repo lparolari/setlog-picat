@@ -1,2 +1,5 @@
 # ignore emacs backups.
 *~
+
+# ignore picat compiled files.
+*.qi
