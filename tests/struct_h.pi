@@ -1,0 +1,20 @@
+module struct_h.
+
+%% is_struct(+Term:term) = Res:bool  is det
+% 
+% @param Term The term to verify if struct.
+% @return Ture if {@code Term} is a struct.
+is_struct(Term) = Res => is_struct_helper(Term, Res).
+
+%% is_struct_helper(+Term:term, -Res:bool) is semidet
+%
+% This helper calls the built-in struct/1 predicate that fails if
+%  a term is not a struct and success otherwise:
+%  - if the predicate fails the nondet uses backtrack and execute 
+%    the second rule, that returns false;
+%  - if the predicate succeed the result is true.
+is_struct_helper(Term, Res) ?=>
+    Res = 1,
+    struct(Term).
+is_struct_helper(Term, Res) ?=>
+    Res = 0.
