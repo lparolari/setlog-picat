@@ -47,7 +47,7 @@ test_struct_functions =>
     X = $neq(a,b),  % a struct.
     Y = 1,          % a non-struct.
     A1 = name(X), A1.println,
-    % is_struct is imoorted form struct_h module and converts
+    % is_struct is imported form struct_h module and converts
     %  the built-in struct predicate in a function.
     A2 = is_struct(X), A2.println,
     B2 = is_struct(Y), B2.println.
