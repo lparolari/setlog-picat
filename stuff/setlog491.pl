@@ -18,7 +18,7 @@
 %%       B.Bazzan  S.Manzoli  S.Monica  C.Piazza  L.Gelsomino
 %%
 %%                        Last revision by 
-%%               Gianfranco Rossi and Maximiliano Cristia'
+%%               Gianfranco Rossi and Maximiliano Cristia
 %%                         (April 2016)           
 %%                                                              
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
