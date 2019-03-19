@@ -1,0 +1,35 @@
+import eq.
+import log_h.
+import testcat.
+
+main => 
+    test_eq1_false,
+    test_eq1_true,
+    test_single_eq.
+
+test_eq1_false => 
+    println("****** test_eq1_false"),
+    X = $eq(1, 2),
+    log_i("in: " ++ X.to_string),
+    log_i("out (expected): 0"),
+    eq_1(X, Res),
+    Res.println,
+    assert_equal(Res, 0).
+
+test_eq1_true => 
+    println("****** test_eq1_true"),
+    X = $eq(1, 1),
+    log_i("in: " ++ X.to_string),
+    log_i("out (expected): 1"),
+    eq_1(X, Res),
+    Res.println,
+    assert_equal(Res, 1).
+
+test_single_eq => 
+    println("****** test_single_eq"),
+    X = $eq(1, 2),
+    log_i("in: " ++ X.to_string),
+    log_i("out (expected): 0"),
+    eq(X, Res),
+    Res.println,
+    assert_equal(Res, 0).
