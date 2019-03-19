@@ -14,7 +14,7 @@ is_struct(Term) = Res => is_struct_helper(Term, Res).
 %    the second rule, that returns false;
 %  - if the predicate succeed the result is true.
 is_struct_helper(Term, Res) ?=>
-    Res = 1,
-    struct(Term).
+    struct(Term),
+    Res = 1.
 is_struct_helper(Term, Res) ?=>
     Res = 0.
