@@ -1,0 +1,5 @@
+module log_h.
+
+log_d(X) => "D: ".print, X.println.
+log_e(X) => "E: ".print, X.println.
+log_i(X) => "I: ".print, X.println.
