@@ -10,9 +10,10 @@ import log_h.
 %% eq(+X:term, -Res:bool)
 % 
 % The equality solver entry point.
-eq(X, Res) => 
+eq(X, Result) => 
     log_d("eq/2"),
-    Res = 1,
+    
+    %Res = 1,
 
     %%
     % Nota: questo meccanismo va esteso con il check della struct di X
@@ -20,33 +21,46 @@ eq(X, Res) =>
     %   mandare l'input.
     %   In questo caso, visto che si lavora solo con $eq, tutto viene mandato
     %   a eq/2.     
-    if is_struct(X[1]) == 1 then 
-        log_d("1 è struct"),
-        log_d(X[1]),
-        eq(X[1], Res1),
-        Res = (Res /\ Res1)
-    elseif is_struct([X2]) == 1 then
-        log_d("2 è struct"),
-        eq(X[2], Res2),
-        Res = (Res /\ Res2)
-    else
-        eq_h(X, Res3),
-        Res = (Res /\ Res3)
-    end.
+
+    % Nota: non ha senso...
+    %if struct(X[1]) then 
+    %    log_d("X[1] struct"),
+    %    log_d(X[1]),
+    %    eq(X[1], Res1),
+    %    Result = (Res /\ Res1)
+    %elseif struct(X[1]) then
+    %    log_d("X[2] struct"),
+    %    eq(X[2], Res2),
+    %    Result = (Res /\ Res2)
+    %else
+    %   log_d("X struct, X[1] and X[2] atoms"),
+    %   eq_h(X, Res3),
+    %   Result = Res3,
+    %end.
+
+    eq_h(X, Result).
 
 %% eq_h(+X:term, -Res:bool)
 % 
 % The real eq solver.
-eq_h(X, Res) => 
-    log_d("eq_h"),
-    Res = 1,
+eq_h(X, Result) => 
+    log_d("eq_h/2"),
     eq_1(X, R),
-    Res = Res /\ R.
+    % Tutte le volte questo if???
+    if R == 1 then 
+        Result = R
+    else 
+        Result = 0 
+    end,
+    log_d("test").
 
 
 % X is equal to itself.
-eq_1(X, Res) ?=> log_d("eq_1_t"), X[1] == X[2], Res = 1.
-eq_1(X, Res) => log_d("eq_1_f"), Res = 0.
+%eq_1(X, Res), X[1] = X[2] => log_d("eq_1_t"), Res = 1.
+%eq_1(X, Res) => log_d("eq_1_f"), Res = 0.
+eq_1(X, Res), X[1] == X[2] => Res = 1.
+eq_1(X, Res) => Res = 0.
+
 
 % X is not a variable.
 %eq_2(X, Res) ?=> 

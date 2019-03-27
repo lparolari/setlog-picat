@@ -5,7 +5,10 @@ import testcat.
 main => 
     test_eq1_false,
     test_eq1_true,
-    test_single_eq.
+    test_eq_atoms_1,
+    test_eq_atoms_2,
+    test_eq_set_1,
+    test_eq_set_2.
 
 test_eq1_false => 
     println("****** test_eq1_false"),
@@ -25,11 +28,42 @@ test_eq1_true =>
     Res.println,
     assert_equal(Res, 1).
 
-test_single_eq => 
-    println("****** test_single_eq"),
+test_eq_atoms_1 => 
+    println("****** test_eq_atoms_1"),
     X = $eq(1, 2),
     log_i("in: " ++ X.to_string),
     log_i("out (expected): 0"),
     eq(X, Res),
     Res.println,
     assert_equal(Res, 0).
+
+test_eq_atoms_2 => 
+        println("****** test_eq_atoms_2"),
+        X = $eq(a, a),
+        log_i("in: " ++ X.to_string),
+        log_i("out (expected): 1"),
+        eq(X, Res),
+        Res.println,
+        assert_equal(Res, 1).
+
+test_eq_set_1 => 
+    println("****** test_eq_set_1"),
+    X = $set([1, 2, 3]),
+    Y = $set([1, 2, 3]),
+    Z = $eq(X, Y),
+    log_i("in: " ++ Z.to_string),
+    log_i("out (expected): 1"),
+    eq(Z, Res),
+    Res.println,
+    assert_equal(Res, 1).
+
+test_eq_set_2 => 
+        println("****** test_eq_set_2"),
+        X = $set([1, 2, 3]),
+        Y = $set([1, 2, 4]),
+        Z = $eq(X, Y),
+        log_i("in: " ++ Z.to_string),
+        log_i("out (expected): 0"),
+        eq(Z, Res),
+        Res.println,
+        assert_equal(Res, 0).
