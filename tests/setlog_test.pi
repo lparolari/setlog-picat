@@ -1,0 +1,33 @@
+import testcat.
+import setlog.
+import log_h.
+import functions_h.
+
+main => setlog_test.
+setlog_test =>
+    setlog_test_eq_atoms,
+    setlog_test_eq_var.
+
+setlog_test_eq_atoms => 
+    println("****** setlog_test_eq_atoms"),
+    Formulas = [$eq(1,1)],
+    log_i("in: " ++ Formulas.to_string),
+    F = solve(Formulas),
+    F.println,
+    assert_equal(F, []).
+
+setlog_test_eq_var => 
+    println("****** setlog_test_eq_var"),
+    Formulas = [$eq(1,X)],
+    log_i("in: " ++ Formulas.to_string),
+    F = solve(Formulas),
+    F.println,
+    assert_equal(F, []).
+
+setlog_test_eq_neq_1 => 
+    println("****** setlog_test_eq_var"),
+    Formulas = [$eq(1,X), $eq(Y,1), $neq(X,Y)],
+    log_i("in: " ++ Formulas.to_string),
+    F = solve(Formulas),
+    F.println.
+    %assert_equal(F, []).

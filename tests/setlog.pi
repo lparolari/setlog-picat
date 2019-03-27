@@ -1,0 +1,122 @@
+module setlog.
+
+import log_h.
+import functions_h.
+
+main => setlog.
+
+%% setlog() is det
+%
+%  Check if Formula is false and fail.
+%  Can be useful to see when a formula has failed and if backtracking is
+%   properly used.
+setlog =>
+    log_d("setlog"),
+    print("{log} => "),
+    Terms = read_file_terms(),
+    Formulas = Terms.flatten,
+    log_d("setlog :: " ++ Formulas.to_string),
+    FormulaRes = solve(Formulas),
+
+    println(FormulaRes).
+
+%% solve(+Formulas:[formula]) is det
+%
+%  Solve formulas applying contraints rewrite rules. 
+%  Solve each formula in Formulas calling sat/1 and keeping results from 
+%   previous iteration unitl the contraint store remain unchanged.
+solve(Formulas) = FormulaRes =>
+    log_d("solve/1"),
+    FR = [],
+    foreach (F in Formulas)
+        FRes = sat(F),
+        has_failed(FRes),
+        log_d("solve/1 :: FRes=" ++ FRes.to_string),
+        % assignment needed to append data only.
+        FR := FR ++ FRes,
+    end,
+    log_d("solve/1 :: FR=" ++ FR.to_string),
+    println(FR.to_string),
+    % continue solving only if there are constraints.
+    if FR !== [] then 
+        FormulaRes = solve(FR)
+    else 
+        FormulaRes = FR
+    end,
+    log_d("solve/1 :: FormulaRes=" ++ FormulaRes.to_string).
+
+%% has_failed(+Formula:formula) is det
+%
+%  Check if Formula is false and fail.
+%  Can be useful to see when a formula has failed and if backtracking is
+%   properly used. 
+has_failed(Formula) =>
+        log_d("has_failed/1 :: formula="++Formula.to_string),
+        Eq = is_eq(Formula, [ff]),
+        log_d("has_failed/1 :: Eq=" ++ Eq.to_string),
+        if Eq == 1 then
+            println("Goal failed!"), 
+            fail
+        end.
+
+%% sat(+F:formula) = Res:formula 
+%
+%  Solve constraints for F.
+%  Might become useful in future when rules becomes more and more 
+%   sophisticated.
+sat(F) = Res =>
+    log_d("sat/1"),
+    Res = rule(F),
+    log_d("sat/1 :: Res=" ++ Res.to_string).
+
+%% rule(eq(+T1:term, +T2:term)) = Res:formula 
+%
+%  Solver rule for *eq* constraints.
+rule(eq(T1, T2)) = Res =>
+    log_d("rule/1 (eq)"),
+    IsGround = is_eq(is_ground(T1), 1) /\ is_eq(is_ground(T2), 1),
+    log_d("rule/1 (eq) :: IsGround=" ++ IsGround.to_string),
+    if IsGround == 1 then
+        if T1 == T2 then
+            Res = [],
+            log_d("rule/1 (eq) :: Res after if: " ++ Res.to_string)
+        else 
+            Res = [ff],
+            log_d("rule/1 (eq) :: Res after else: " ++ Res.to_string)
+        end
+    else 
+        T1 = T2,
+        Res = [$eq(T1,T2)]
+    end.
+
+%% rule(neq(+T1:term, +T2:term)) = Res:formula 
+%
+%  Solver rule for *neq* constraints.
+rule(neq(T1, T2)) = Res =>
+        IsGround = is_eq(is_ground(T1), 1) /\ is_eq(is_ground(T2), 1),
+        log_d("rule/1 (neq) :: is ground: " ++ IsGround.to_string),
+        if IsGround == 1 then
+            if T1 !== T2 then
+                Res = [],
+                log_d("rule/1 (neq) :: Res after if: " ++ Res.to_string)
+            else 
+                Res = [ff],
+                log_d("rule/1 (neq) :: Res after else: " ++ Res.to_string)
+            end
+        else 
+            Res = [neq(T1,T2)]
+        end.
+
+%% rule(or(+T1:term, +T2:term)) = Res:formula 
+rule(or(T1, T2)) = Res =>
+    rule($or(T1, T2), Res).
+
+%% rule(or(+T1:term, +T2:term), -Res:formula) is nondet
+% 
+%  Solver rule for *or* constraints.
+%  First solve T1. If formula fails, solve T2 (using nondet).
+rule(or(T1, T2), Res) ?=> 
+    Res = solve([T1]).
+rule(or(T1, T2), Res) ?=> 
+    Res = solve([T2]).
+
