@@ -6,28 +6,48 @@ import functions_h.
 main => setlog_test.
 setlog_test =>
     setlog_test_eq_atoms,
-    setlog_test_eq_var.
+    setlog_test_eq_var,
+    %setlog_test_eq_neq_1,
+    setlog_test_eqVV_neqVC.
 
 setlog_test_eq_atoms => 
     println("****** setlog_test_eq_atoms"),
     Formulas = [$eq(1,1)],
     log_i("in: " ++ Formulas.to_string),
     F = solve(Formulas),
-    F.println,
-    assert_equal(F, []).
+    F.println.
+    %assert_equal(F, []).
 
 setlog_test_eq_var => 
     println("****** setlog_test_eq_var"),
     Formulas = [$eq(1,X)],
     log_i("in: " ++ Formulas.to_string),
     F = solve(Formulas),
-    F.println,
-    assert_equal(F, []).
+    F.println.
+    %assert_equal(F, []).
 
 setlog_test_eq_neq_1 => 
-    println("****** setlog_test_eq_var"),
+    println("****** setlog_test_eq_neq_1"),
     Formulas = [$eq(1,X), $eq(Y,1), $neq(X,Y)],
     log_i("in: " ++ Formulas.to_string),
     F = solve(Formulas),
     F.println.
     %assert_equal(F, []).
+
+setlog_test_eqVV_neqVC => 
+    println("****** setlog_test_eqVV_neqVC"),
+    Formulas = [$eq(X,Y), $neq(X,5)],
+    log_i("in: " ++ Formulas.to_string),
+    F = solve(Formulas),
+    F.println.
+    %assert_equal(F, []).
+
+
+% some tests to do:
+% [eq(X,Y),neq(X,5)].
+% [or(eq(X,5), eq(X,6))].
+% [or(eq(X,8), neq(X,5))].
+% [or(neq(X,5), neq(X,6))].
+% [or(eq(X,a),eq(X,b)),eq(f(X),f(a))].
+% [or(eq(X,a),neq(X,c)), or(eq(X,a),eq(Z,b)), neq(f(X),f(a))].
+% [or(eq(X,b),neq(X,c)), or(eq(X,a),eq(Z,b)), neq(f(X),f(a))].
