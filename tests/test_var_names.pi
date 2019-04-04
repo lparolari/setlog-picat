@@ -1,0 +1,52 @@
+main =>
+    test_1.
+    %FD = open("in.txt"),
+    %println(FD),
+    %TokenType = x,
+    %while(TokenType !== end_of_file)
+    %    read_picat_token(FD, TokenType, TokenValue),
+    %    println(TokenType.to_string ++ ", " ++ TokenValue.to_string),
+    %    read_picat_token(FD, TokenType, TokenValue),
+    %    println(TokenType.to_string ++ ", " ++ TokenValue.to_string),
+    %    read_picat_token(FD, TokenType, TokenValue),
+    %    println(TokenType.to_string ++ ", " ++ TokenValue.to_string),
+    %end,
+    %close(FD).
+
+test_1 =>
+    M = new_map(),
+    Reader = open("in.txt"),
+    I := 0,
+    while (not at_end_of_stream(Reader))
+        read_picat_token(Reader, TokenType, TokenValue),
+        println(TokenType.to_string ++ " " ++ TokenValue.to_string),
+        if TokenType == var then 
+            M.put(I, TokenValue),
+            I := I+1
+        end,
+    end,
+    println(M),
+    close(Reader),
+    Reader = open("in.txt"),
+    Term = read_term(Reader),
+    close(Reader),
+    println(Term),
+    Writer = open("tmp.txt", write),
+    println(Writer, Term),
+    Writer.flush(),
+    close(Writer),
+    Reader = open("tmp.txt"),
+    I := 0,
+    while (not at_end_of_stream(Reader))
+        read_picat_token(Reader, TokenType, TokenValue),
+        println(TokenType.to_string ++ " " ++ TokenValue.to_string),
+        if TokenType == var then 
+            Name := M.get(I),
+            I := I+1,
+            println(Name.to_string ++"="++TokenValue.to_string)
+        end,
+    end.
+
+% It works!
+
+% Now refactor the code and think how to put this logic in setlog main program.
