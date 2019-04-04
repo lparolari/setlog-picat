@@ -1,0 +1,71 @@
+PICAT SETLOG JOURNAL
+
+Luca Parolari <luca.parolari23@gmail.com>
+
+This document is intentionally in italian.
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+-                                 2019-01-11                                 -
+------------------------------------------------------------------------------
+- The beginning                                                              -
+------------------------------------------------------------------------------
+
+L'idea è nata dalla volonta di voler conoscere un linguaggio funzionale ed
+il suo funzionamento, applicando la programmazione per vincoli CLP.
+
+Sono stato coinvolto con la proposta di sviluppare sostanzialmente un 
+risolutore di formule per il linguaggio {log}, basato su insiemi.
+
+Il linguaggio L_BR (di {log}) è un linguaggio a vincoli che fornisce insiemi 
+estensionali finiti e relazioni binarie su operazioni base come entità 
+primitive del linguaggio.
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                          February/March                               -
+------------------------------------------------------------------------------
+- Some learnings                                                             -
+------------------------------------------------------------------------------
+
+Proof of concepts per picat, lettura manuali, documenti e raccolta 
+informazioni necessarie per procedere con il lavoro.
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                           mid-Februrary                               -
+------------------------------------------------------------------------------
+- Utils and first setlog solver                                              -
+------------------------------------------------------------------------------
+
+Aggiunte alcune funzioni di utilità in picat, abbozzata la prima struttura
+del solver, risoluzione dei problemi comuni e apprendimento del funzionamento
+di Picat.
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                     end of March / early of April                     -
+------------------------------------------------------------------------------
+- More on setlog solver                                                      -
+------------------------------------------------------------------------------
+
+Aggiunta una struttura più consistente per il risolutore setlog grazie al
+file di prova in prolog del prof. Primi risultati.
+
+Inizio risooluzioni dei primi problemi ed adeguamento del codice alle 
+necessità ed a Picat stesso.
+Particolare difficoltà nella riproduzione delle funzioni dai predicati, 
+trasformati grazie all'uso del "fail" e della programmazione logica.
+
+Trasformato il risolutore, ove possibile, in uno il più possibile imperativo
+per facile comprensione altrui.
+
+Aggiunte funzioni di utilità come logger, e trasformatore di predicati in
+funzioni. 
