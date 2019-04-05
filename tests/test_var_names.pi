@@ -1,5 +1,6 @@
 main =>
     test_1.
+    %test_2.
     %FD = open("in.txt"),
     %println(FD),
     %TokenType = x,
@@ -50,3 +51,76 @@ test_1 =>
 % It works!
 
 % Now refactor the code and think how to put this logic in setlog main program.
+
+
+read_term(Map, Options) = Term => 
+    Term = read_term(stdin, Map, Options).
+
+% an initilized picat map
+% a open file descriptor in read mode
+% options
+read_term(FD, Map, [$variable_names(VarNames)]) = Term =>
+    % shared vars
+    TmpFilename = ".setlog-tmp-readterm2.txt",
+    M = new_map(),
+
+    TmpFileWriter = open(TmpFilename, write),
+
+    do
+        L := read_line(FD),
+        TmpFileWriter.println(L)
+    while (L != end_of_file),
+
+    TmpFileWriter.close(),
+    
+    % ---
+    % reading real names
+    
+    TmpFileReader = open(TmpFilename),
+
+    I := 0,
+    while (not at_end_of_stream(TmpFileReader))
+        read_picat_token(TmpFileReader, TokenType, TokenValue),
+        %TmpFile.print(TokenValue),
+        %println(TokenType.to_string ++ " " ++ TokenValue.to_string),
+        if TokenType == var then 
+            M.put(I, TokenValue),
+            I := I+1
+        end,
+    end,
+
+    TmpFileReader.close(),
+
+    % ---
+    % reading picat names
+
+    TmpFileReader = open(TmpFilename),
+    T = read_term(TmpFileReader),  % the picat read_term/1.
+    TmpFileReader.close(),
+
+    TmpFileWriter = open(TmpFilename, write),
+    TmpFileWriter.println(T),
+    TmpFileWriter.close(),
+
+    TmpFileReader = open(TmpFilename),
+
+    I := 0,
+    while (not at_end_of_stream(TmpFileReader))
+        read_picat_token(TmpFileReader, TokenType, TokenValue),
+        %println(TokenType.to_string ++ " " ++ TokenValue.to_string),
+        if TokenType == var then 
+            RealName := M.get(I),
+            PicatName := TokenValue,
+
+            %FIXME!!
+            Map.put(TokenValue.to_string, Name.to_string),
+
+            I := I+1,
+            %println(Name.to_string ++"="++TokenValue.to_string)
+            
+        end,
+    end,
+    
+    TmpFileReader.close(),
+
+    Term := T.
