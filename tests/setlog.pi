@@ -2,23 +2,40 @@ module setlog.
 
 import log_h.
 import functions_h.
+import read_term_sl.
 
 main => setlog.
 
-%% setlog() is det
+setlog => top_level.
+
+%% top_level() is det
 %
 %  Check if Formula is false and fail.
 %  Can be useful to see when a formula has failed and if backtracking is
 %   properly used.
-setlog =>
+%
+% Examples:
+%  - [eq(X,5), neq(X,7)].
+top_level ?=>
     log_d("setlog"),
     print("{log} => "),
-    Terms = read_file_terms(),
-    Formulas = Terms.flatten,
-    log_d_vv("setlog :: " ++ Formulas.to_string),
-    FormulaRes = solve(Formulas),
+    Term = read_term_sl([$variable_names(VarNames)]),
+    Formula = Term,
+    log_d_vv("setlog :: VarNames=" ++ VarNames.to_string),
+    log_d_vv("setlog :: Formula=" ++ Formula.to_string),
+    FormulaRes = solve(Formula),
+    
+    println("" ++ FormulaRes.to_string),
 
-    println("" ++ FormulaRes.to_string).
+    print("Another solution? (y/n): "),
+    C = read_char(),
+    if C == y then 
+        fail
+    end.
+
+top_level =>
+    println(no), nl,
+    top_level.
 
 %% solve(+Formulas:[term]) is det
 %

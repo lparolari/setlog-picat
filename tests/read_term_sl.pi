@@ -1,4 +1,4 @@
-module read_term.
+module read_term_sl.
 
 %% read_term_sl(+Options) = Term
 %
