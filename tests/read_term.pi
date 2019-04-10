@@ -1,0 +1,103 @@
+module read_term.
+
+%% read_term_sl(+Options) = Term
+%
+% Read a term from the current input stream and unify the term with Term. 
+%  The reading is controlled by options from the list of Options. If this 
+%  list is empty only Term is returned.
+% 
+% Options:list A list of options.
+%  - $variable_names(Vars) Unify Vars with a map with key as the variable 
+%                          picat name and the value is the real name.
+%    Examples:
+%     > X = read_term([$variable_names(VarNames)]).
+%     X = [eq(_11e68,1),eq(_11f88,2)]
+%     VarNames = (map)['_11f88' = 'Y','_11e68' = 'X']
+read_term_sl(Options) = Term => 
+    Term = read_term_sl(stdin, Options).
+
+% an initilized picat map
+% a open file descriptor in read mode
+% options
+
+%% read_term_sl(FD, [$variable_names(VarNames)]) = Term
+%
+% FD:FileDescriptor  File from whihc read term.
+% [$variable_names(VarNames)]  Option for obtaining variable names.
+read_term_sl(FD, [$variable_names(VarNames)]) = Term =>
+    
+    TmpFilename = ".setlog-tmp-readterm2.txt",
+
+    % contains intermediate resulta as (map)[0 = X, 1 = Y, ...]
+    M_idx_names = new_map(),
+    % contains results as (map)['_13648' = 'X', '_134f8' = 'Y']
+    M_picatnames_names = new_map(),
+
+
+    TmpFileWriter = open(TmpFilename, write),
+
+    do
+        L := read_line(FD),
+        TmpFileWriter.println(L)
+    while (L != end_of_file),
+
+    TmpFileWriter.close(),
+    
+    % ---
+    % reading real names
+    
+    TmpFileReader = open(TmpFilename),
+
+    I := 0,
+    while (not at_end_of_stream(TmpFileReader))
+        read_picat_token(TmpFileReader, TokenType, TokenValue),
+        %TmpFile.print(TokenValue),
+        %println(TokenType.to_string ++ " " ++ TokenValue.to_string),
+        if TokenType == var then 
+            M_idx_names.put(I, TokenValue),
+            I := I+1
+        end,
+    end,
+
+    TmpFileReader.close(),
+    
+    % M contains (key, value) as (global index of variable read, variable name)
+    % e.g. (map)[0 = X, 1 = Y, 2 = X1]
+
+    % ---
+    % reading picat names
+
+    % read again plain input.
+    TmpFileReader = open(TmpFilename),
+    T = read_term(TmpFileReader),  % the picat read_term/1.
+    TmpFileReader.close(),
+
+    % write picat-parsed input on file.
+    TmpFileWriter = open(TmpFilename, write),
+    TmpFileWriter.println(T),
+    TmpFileWriter.close(),
+
+    % read picat-parsed input from which read tokens and get types.
+    TmpFileReader = open(TmpFilename),
+
+    I := 0,
+    while (not at_end_of_stream(TmpFileReader))
+        read_picat_token(TmpFileReader, TokenType, TokenValue),
+
+        if TokenType == var then 
+            RealName := M_idx_names.get(I),
+            PicatName := TokenValue,
+
+            M_picatnames_names.put(PicatName, RealName),
+
+            I := I+1
+        end
+    end,
+    
+    TmpFileReader.close(),
+
+    % M contains (key, value) as (picat variable name, variable name)
+    % e.g. (map)['_13648' = 'X', '_134f8' = 'Y']
+
+    Term := T,
+    VarNames = M_picatnames_names.
