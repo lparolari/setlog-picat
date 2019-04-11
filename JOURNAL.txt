@@ -69,3 +69,34 @@ per facile comprensione altrui.
 
 Aggiunte funzioni di utilità come logger, e trasformatore di predicati in
 funzioni. 
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+-                                 11/04/2019                                 -
+------------------------------------------------------------------------------
+- Global variables and tmp file helper                                       -
+------------------------------------------------------------------------------
+
+Aggiunto un helper per le variabili globali che scrive su get_global_map(),
+possibilità:
+- get_heap_map()
+    Created on the heap after the thread is created
+    Changes are undone when backtracking
+- get_global_map()
+    Created in the global area when Picat is started
+    Changes are not undone when backtracking
+- get_table_map()
+    Created in the table area when Picat is started
+    Keys and values are hash-consed
+    Changes are not undone when backtracking
+
+fonte: http://picat-lang.org/download/picat_tutorial.pdf
+
+Aggiunto un helper per file temporanei che dia la possibilità di leggere e 
+scrivere sullo stesso file senza trattare i nomi ed in modo semplice ed 
+efficace.
+
+Questi helper serviranno per l'implementazione della conversione variabili
+picat a variabili reali per quanto riguarda i nomi.
