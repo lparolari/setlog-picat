@@ -3,12 +3,13 @@ module setlog.
 import log_h.
 import functions_h.
 import read_term_sl.
+import temp.
 
 main => setlog.
 
 setlog => top_level.
 
-%% top_level() is det
+%% top_level() is nondet
 %
 %  Check if Formula is false and fail.
 %  Can be useful to see when a formula has failed and if backtracking is
@@ -24,8 +25,9 @@ top_level ?=>
     log_d_vv("setlog :: VarNames=" ++ VarNames.to_string),
     log_d_vv("setlog :: Formula=" ++ Formula.to_string),
     FormulaRes = solve(Formula),
-    
-    println("" ++ FormulaRes.to_string),
+
+    FormulaResNew = convert(FormulaRes, VarNames),
+    println("" ++ FormulaResNew.to_string),
 
     print("Another solution? (y/n): "),
     C = read_char(),
@@ -36,6 +38,28 @@ top_level ?=>
 top_level =>
     println(no), nl,
     top_level.
+
+convert(Term, VarNames) = TermRealNames =>
+    TmpFileWriter = tmp_w(tmp1),
+    TmpFileWriter.println(Term.to_string),
+    TmpFileWriter.close(),
+
+    TmpFileReader = tmp_r(tmp1), 
+
+    NewTerm := "",
+
+    while (not at_end_of_stream(TmpFileReader))
+        read_picat_token(TmpFileReader, TokenType, TokenValue),
+        if TokenType == var then 
+            NewTerm := NewTerm ++ VarNames.get(TokenValue).to_string
+        else 
+            NewTerm := NewTerm ++ TokenValue.to_string
+        end,
+    end,
+
+    TermRealNames = NewTerm,
+    
+    tmp_d(tmp1).
 
 %% solve(+Formulas:[term]) is det
 %
