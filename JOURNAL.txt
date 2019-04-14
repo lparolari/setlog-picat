@@ -7,7 +7,7 @@ This document is intentionally in italian.
 
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
--                                 2019-01-11                                 -
+- 2019                            11 Genuary                                 -
 ------------------------------------------------------------------------------
 - The beginning                                                              -
 ------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ informazioni necessarie per procedere con il lavoro.
 
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
-- 2019                           mid-Februrary                               -
+- 2019                           mid-March                               -
 ------------------------------------------------------------------------------
 - Utils and first setlog solver                                              -
 ------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ di Picat.
 
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
-- 2019                     end of March / early of April                     -
+- 2019                           March-April                                 -
 ------------------------------------------------------------------------------
 - More on setlog solver                                                      -
 ------------------------------------------------------------------------------
@@ -74,7 +74,7 @@ funzioni.
 
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
--                                 11/04/2019                                 -
+- 2019                            11 April                                   -
 ------------------------------------------------------------------------------
 - Global variables and tmp file helper                                       -
 ------------------------------------------------------------------------------
@@ -100,3 +100,26 @@ efficace.
 
 Questi helper serviranno per l'implementazione della conversione variabili
 picat a variabili reali per quanto riguarda i nomi.
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                           13-14 April                                 -
+------------------------------------------------------------------------------
+- First set, in and notin constraint tests                                   -
+------------------------------------------------------------------------------
+
+Aggiunte le prime prove per l'implementazione di set e dei vincoli in e 
+notin nel solver. E' stato necessario implementare una funzione smember 
+per verificare l'esistenza di un elemento (anche variabile) nel set 
+sfruttando il nondeterminismo. Complicanze nell'utilizzo del nondeterminismo 
+"inline" con picat.
+Note:
+ - implementazione naive in (ok)
+ - implementazione naive notin (ovvero, `not rule($in(...))`) non 
+   funzionante.
+
+Aggiunti modulo per l'interazione con utente (user input).
+
+Project refactor (moved modules to setlog folder).

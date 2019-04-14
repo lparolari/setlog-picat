@@ -9,7 +9,7 @@ main => setlog.
 
 setlog => top_level.
 
-%% top_level() is nondet
+%% top_level() is semidet  % XXX: find out what semidet really means!!
 %
 %  Check if Formula is false and fail.
 %  Can be useful to see when a formula has failed and if backtracking is
