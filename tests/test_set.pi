@@ -40,13 +40,23 @@ test_var_set =>
     rule($in(2, S), Res),
     Res.println.
 
-
-rule(in(X, $set(Y)), Res) =>
-    smember(X, Y, Res).
+%my rule
+%rule(in(X, $set(Y)), Res) =>
+%    smember(X, Y, Res).
 
 smember(X, [H|_T], Z) ?=> X = H, Z = H.
 smember(X, [_H|T], Z) ?=>
     smember(X, T, Z).
+
+
+rule(in(X, set(S)), Res) =>
+    if is_ground(S) == 1 then
+        member(X, S),
+        Res := []
+    else 
+        Res := $eq(S, $set([X|_N]))
+    end,
+    println(Res).
 
 confirm(Q) = A => 
     print(Q.to_string ++ " (y/n): "),
@@ -60,4 +70,7 @@ confirm(Q) = A =>
 anothersol() = A => 
     A = confirm("Another solution?").
     
-    
+%% is_ground(+T:term) = Res:bool
+is_ground(T) = Res => is_ground(T, Res).
+is_ground(T, Res), ground(T)  => Res = 1.
+is_ground(T, Res)  => Res = 0.
