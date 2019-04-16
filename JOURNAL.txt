@@ -2,7 +2,7 @@ PICAT SETLOG JOURNAL
 
 Luca Parolari <luca.parolari23@gmail.com>
 
-This document is intentionally in italian.
+This document, apart from headers, is intentionally in italian.
 
 
 ------------------------------------------------------------------------------
@@ -123,3 +123,50 @@ Note:
 Aggiunti modulo per l'interazione con utente (user input).
 
 Project refactor (moved modules to setlog folder).
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                              15 April                                 -
+------------------------------------------------------------------------------
+- Picat problems                                                             -
+------------------------------------------------------------------------------
+
+Riscontrati una buona dose di problemi con picat:
+
+(1) chiudere di seguito due stream read e write comporta il troncamenteo del
+    file (motivi ignoti);
+
+(2) la read_term di picat quando incontra il $ trasforma la clausola in 
+    qualcosa tipo _$_term_construct, e tenta di costruire una struct.
+    Questo non va per nulla bene nell'implementazione della traduzione 
+    da "picat names a real names", che sbarella non appena prende uno di
+    questi e fallisce miseramente la traduzione.
+    **Soluzione**: non mi sembra una soluzione l'aggiunta di casi eccezionali
+                   tipo 
+      se:            _$_term_construct allora non fare nulla
+      altrimenti:   fai come solito
+    ...;
+ 
+(3) pattern matching è notevolmente problematico per il problemi di chiudere
+    al punto (2), obbliga a scrivere cose come [$eq(X,1)] da passare alla
+    rule(eq(X,Y)) ma sempre per la traduzione da "picat names a real 
+    names" è un problema. 
+    **Soluzione**: manipolazione di stringhe toglie tutti i dollari (MAH).
+
+Fix and bugs setlog e mie implementazioni:
+
+(1) modulo temp: 
+      - chiusura file demandata all'utente.
+        Questa implementazione
+           X = tmp_w(Key), X.close()
+           Y = tmp_r(Key), Y.close()
+        causa il troncamento del file con conseguente perdita di informazione.
+
+      - eliminazione file possibile (a quanto pare) senza chiusura degli 
+        stream. 
+        
+(2) modulo read_term_sl:
+     - aggiunto ignore delle variabili duplicate e utilizzato il modulo
+       temp.
