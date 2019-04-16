@@ -4,6 +4,7 @@ import log_h.
 import functions_h.
 import read_term_sl.
 import temp.
+import prompt.
 
 main => setlog.
 
@@ -29,15 +30,16 @@ top_level ?=>
     FormulaResNew = convert(FormulaRes, VarNames),
     println("" ++ FormulaResNew.to_string),
 
-    print("Another solution? (y/n): "),
-    C = read_char(),
-    if C == y then 
+    if anothersol() == 1 then 
         fail
     end.
 
 top_level =>
     println(no), nl,
     top_level.
+
+anothersol() = A => 
+    A = confirm("Another solution?").
 
 convert(Term, VarNames) = TermRealNames =>
     TmpFileWriter = tmp_w(tmp1),
@@ -54,7 +56,7 @@ convert(Term, VarNames) = TermRealNames =>
             NewTerm := NewTerm ++ VarNames.get(TokenValue).to_string
         else 
             NewTerm := NewTerm ++ TokenValue.to_string
-        end,
+        end
     end,
 
     TermRealNames = NewTerm,
@@ -189,3 +191,11 @@ rule(or(_T1, T2), Res) ?=>
     log_d_v("rule/2/b (or)"), 
     Res = solve([T2]).
 
+
+rule(in(X, set(S)), Res) =>
+    if is_ground(S) == 1 then
+        member(X, S),
+        Res := []
+    else 
+        Res := $eq(S, $set([X|_N]))
+    end.
