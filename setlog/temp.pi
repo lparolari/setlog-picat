@@ -21,15 +21,14 @@ tmp_w(Key) = TmpFileWriter =>
         I := get_i(),
         global(Key, I),
         TmpFileWriter = open(".tmp_" ++ I.to_string, write),
-        inc_i(),
+        inc_i()
     else
         I := global(Key),
-        TmpFileWriter = open(".tmp_" ++ I.to_string, write),
+        TmpFileWriter = open(".tmp_" ++ I.to_string, write)
     end,
     
     DFL = get_del_file_list(), 
     DFL.put(Key).
-
 
 %% tmp_w(+Key) = TmpFileWriter
 % 
@@ -43,17 +42,9 @@ tmp_r(Key) = TmpFileReader =>
 % 
 % Delete the Key binded file.
 tmp_d(Key) => 
-    tmp_c(Key),
     I := global(Key),
     FN := get_file_name(I),
     rm(FN).
-
-%% tmp_c(+Key) is det
-% 
-% Close the Key binded file even in read or write mode.
-tmp_c(Key) =>
-    X = tmp_w(Key), X.close(),
-    Y = tmp_r(Key), Y.close().
 
 %% tmp_d_all()
 % 
@@ -63,6 +54,9 @@ tmp_d_all() =>
         tmp_d(Key)
     end.
 
+
+% -------
+% HELPERS
 
 check_tmp_counter() =>
     % tmp_file_counter initialization to zero.
