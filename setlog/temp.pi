@@ -25,10 +25,10 @@ tmp_w(Key) = TmpFileWriter =>
     else
         I := global(Key),
         TmpFileWriter = open(".tmp_" ++ I.to_string, write)
-    end,
+    end.
     
-    DFL = get_del_file_list(), 
-    DFL.put(Key).
+    %DFL = get_del_file_list(), 
+    %DFL.put(Key).
 
 %% tmp_w(+Key) = TmpFileWriter
 % 
@@ -49,10 +49,10 @@ tmp_d(Key) =>
 %% tmp_d_all()
 % 
 % Delete all previously open tmp files.
-tmp_d_all() =>
-    foreach (Key in get_del_file_list())
-        tmp_d(Key)
-    end.
+%tmp_d_all() =>
+%    foreach (Key in get_del_file_list())
+%        tmp_d(Key)
+%    end.
 
 
 % -------
@@ -72,6 +72,6 @@ check_del_list_init() =>
 get_i() = I => I = global(tmp_file_counter).
 inc_i() => I = get_i(), I := I + 1, global(tmp_file_counter, I).
 
-get_del_file_list() = DFL => DFL = global(del_file_list).
+%get_del_file_list() = DFL => DFL = global(del_file_list).
 
 get_file_name(I) = FN => FN = ".tmp_" ++ I.to_string.
