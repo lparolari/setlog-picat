@@ -42,16 +42,19 @@ anothersol() = A =>
     A = confirm("Another solution?").
 
 convert(Term, VarNames) = TermRealNames =>
+    log_d_v("convert/2"),
+
     TmpFileWriter = tmp_w(tmp1),
     TmpFileWriter.println(Term.to_string),
     TmpFileWriter.close(),
 
-    TmpFileReader = tmp_r(tmp1), 
+    TmpFileReader = tmp_r(tmp1),
 
     NewTerm := "",
 
     while (not at_end_of_stream(TmpFileReader))
         read_picat_token(TmpFileReader, TokenType, TokenValue),
+        log_d_vv("convert/2 :: " ++ "(" ++ TokenType.to_string ++ ", " ++ TokenValue.to_string ++ ")"),
         if TokenType == var then 
             NewTerm := NewTerm ++ VarNames.get(TokenValue).to_string
         else 
@@ -59,9 +62,13 @@ convert(Term, VarNames) = TermRealNames =>
         end
     end,
 
+    TmpFileReader.close(),
+
     TermRealNames = NewTerm,
     
-    tmp_d(tmp1).
+    log_d_vv("convert/2 :: " ++ TermRealNames.to_string),
+    true.
+    %tmp_d(tmp1).
 
 %% solve(+Formulas:[term]) is det
 %
