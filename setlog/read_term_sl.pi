@@ -17,6 +17,7 @@ import log_h.
 %     X = [eq(_11e68,1),eq(_11f88,2)]
 %     VarNames = (map)['_11f88' = 'Y','_11e68' = 'X']
 read_term_sl(Options) = Term => 
+    log_d_v("read_term_sl/1"),
     Term = read_term_sl(stdin, Options).
 
 % an initilized picat map
@@ -28,8 +29,7 @@ read_term_sl(Options) = Term =>
 % FD:FileDescriptor  File from whihc read term.
 % [$variable_names(VarNames)]  Option for obtaining variable names.
 read_term_sl(FD, [$variable_names(VarNames)]) = Term =>
-    
-    %TmpFilename = ".setlog-tmp-readterm2.txt",
+    log_d_v("read_term_sl/2"),
 
     % contains intermediate resulta as (map)[0 = X, 1 = Y, ...]
     M_idx_names = new_map(),
@@ -54,10 +54,11 @@ read_term_sl(FD, [$variable_names(VarNames)]) = Term =>
     I := 0,
     while (not at_end_of_stream(TmpFileReader))
         read_picat_token(TmpFileReader, TokenType, TokenValue),
-        log_d_vv(TokenType.to_string ++ " " ++ TokenValue.to_string),
+        log_d_vv("read_term_sl/2 :: read plain = (" ++ TokenType.to_string ++ ", " ++ TokenValue.to_string ++ ")"),
         
         if TokenType == var then 
             if not M_idx_names.has_key(TokenValue) then
+                log_d_vvv("read_term_sl/2 :: var found, will increment I"),
                 M_idx_names.put(I, TokenValue),
                 I := I+1
             end
@@ -65,7 +66,7 @@ read_term_sl(FD, [$variable_names(VarNames)]) = Term =>
     end,
 
     TmpFileReader.close(),  % TmpFileReader.close(),
-    log_d_vv(M_idx_names.to_string),
+    log_d_vv("read_term_sl/2 :: M_idx_names = " ++ M_idx_names.to_string),
 
     % M contains (key, value) as (global index of variable read, variable name)
     % e.g. (map)[0 = X, 1 = Y, 2 = X1]
@@ -89,12 +90,15 @@ read_term_sl(FD, [$variable_names(VarNames)]) = Term =>
     I := 0,
     while (not at_end_of_stream(TmpFileReader))
         read_picat_token(TmpFileReader, TokenType, TokenValue),
+        log_d_vv("read_term_sl/2 :: read picat encoded = (" ++ TokenType.to_string ++ ", " ++ TokenValue.to_string ++ ")"),
 
         if TokenType == var then 
             RealName := M_idx_names.get(I),
             PicatName := TokenValue,
 
             if not M_picatnames_names.has_key(TokenValue) then
+                log_d_vvv("read_term_sl/2 :: var found"),
+
                 M_picatnames_names.put(PicatName, RealName),
                 I := I+1
             end
@@ -109,6 +113,9 @@ read_term_sl(FD, [$variable_names(VarNames)]) = Term =>
 
     Term := T,
     VarNames := M_picatnames_names,
+
+    log_d_vv("read_term_sl/2 :: term=" ++ Term.to_string),
+    log_d_vv("read_term_sl/2 :: varnames=" ++ VarNames.to_string),
     
     tmp_d(f1).
 
