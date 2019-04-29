@@ -1,0 +1,79 @@
+module setlog.
+
+import prompt.
+import log_h.
+
+import setlog_eq.
+
+main => setlog.
+
+setlog => top_level.
+
+
+top_level ?=>
+    log_d_v("setlog"),
+    print("{log} => "),
+    Term = read_term(),
+    log_d_vv("setlog :: Term="++Term.to_string),
+
+    solve(Term, Res),
+
+    println(Res),
+
+    if anothersol() == 1 then 
+        fail
+    end.
+    
+top_level =>
+    println(no11), nl,
+    top_level.
+
+anothersol() = A => 
+    nl,
+    A = confirm("Another solution?").
+
+
+solve(Formulas, FormulaRes) =>
+    log_d_v("solve/2"),
+    FormulasNew := [],
+    foreach (Formula in Formulas)
+        log_d_vv("solve/2 :: Formula="++Formula.to_string),
+        sat(Formula, Res),
+        FormulasNew := FormulasNew ++ Res, %[FormulasNew | FormulaRes],
+        log_d_vv("solve/2 :: FormulasNew="++FormulasNew.to_string),
+    end,
+    log_d_vv("solve/2 :: Formulas="++Formulas.to_string),
+    log_d_vv("solve/2 :: FormulasNew="++FormulasNew.to_string),
+    if FormulasNew !== Formulas then
+        solve(FormulasNew, FormulaRes)
+    else
+        FormulaRes = FormulasNew
+    end.
+    
+
+sat(F1, FR), F1 == [] => 
+    log_d_vv("step/2 :: s1"),
+    FR = [], 
+    true.
+sat(F1, FnewR) =>
+    log_d_vv("step/2 :: s2"),
+    rule(F1,FnewR).
+
+
+rule(eq(T1,T2), R), ground(T1), ground(T2) =>
+    log_d_vv("rule eq 1"),
+    R = [],
+    T1 == T2.
+rule(eq(T1,T2), R) =>
+    log_d_vv("rule eq 2"),
+    R = [],
+    T1 = T2.
+
+rule(neq(T1,T2), R), ground(T1), ground(T2) =>
+    log_d_vv("rule neq 1"),
+    R = [],
+    T1 !== T2.
+rule(neq(T1,T2), R) =>
+    log_d_vv("rule neq 2"),
+    R = [$neq(T1,T2)].
+
