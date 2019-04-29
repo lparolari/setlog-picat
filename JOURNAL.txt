@@ -177,8 +177,31 @@ Fix and bugs setlog e mie implementazioni:
 ------------------------------------------------------------------------------
 - 2019                              17 April                                 -
 ------------------------------------------------------------------------------
-- Some fixes                                                             -
+- Some fixes                                                                 -
 ------------------------------------------------------------------------------
 
 Fix del modulo read_term_sl
 Update temp module: removed del files.
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                              29 April                                 -
+------------------------------------------------------------------------------
+- A new setlog intepreter                                                    -
+------------------------------------------------------------------------------
+
+Nuova implementazione dell'interprete setlog sfruttando la potenza dei
+predicati. Le regole di risoluzione sono state separate dall'interpretazione
+della sintassi delle formule, ed offerte come delle api di programmazione.
+
+Es: rule(eq(T1, T2), R) => eq(T1, T2, R). 
+ in cui la rule richiama l'api per la risoluzione delle equality constraints.
+
+Tentata la segmentazione delle regole di risoluzione, ma data la dipendenza 
+di alcune regole da altre regole è stato impossibile segmentare tutto.
+
+Implementata la modifica dinamica della debug mode da variabili globali.
+
+Implementazione di uno scheletro per il testing delle regole di inferenza.
