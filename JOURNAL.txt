@@ -170,3 +170,15 @@ Fix and bugs setlog e mie implementazioni:
 (2) modulo read_term_sl:
      - aggiunto ignore delle variabili duplicate e utilizzato il modulo
        temp.
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                              17 April                                 -
+------------------------------------------------------------------------------
+- Some fixes                                                             -
+------------------------------------------------------------------------------
+
+Fix del modulo read_term_sl
+Update temp module: removed del files.
