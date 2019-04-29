@@ -1,0 +1,16 @@
+import log_h.
+
+main =>
+    true.
+
+solve(X) => rule(X).
+
+rule(sin(T, X)) => log_d_v("T:" ++ T.to_string), log_d_v("X:" ++ X.to_string), sin(T, X).
+
+% in constraints
+sin(T, set([])) => log_d_v("sin1"), false.                 % 1
+sin(T, set([T | R])) => log_d_v("sin2"), true.             % 2
+sin(T, set([A | R])) => log_d_v("sin3"), sin(T, $set(R)).  % 3
+
+or(T1, _T2) ?=> log_d_v("s1"), solve(T1).
+or(_T1, T2) ?=> log_d_v("s2"), solve(T2).
