@@ -3,29 +3,41 @@ module setlog.
 import prompt.
 import log_h.
 
-import setlog_eq.
+%%%
+% [eq(1,1)].
+% [neq(X,1), neq(X,2)].
+% [sin(x,set([a,b,x]))].
+% [sin(1, set([]))].
+% [or(neq(X,1), eq(X,1))].
 
 main => setlog.
 
-setlog => top_level.
+setlog => 
+    setlog([$log_mode(none)]),
+    top_level.
+
+setlog([$log_mode(LogMode)]) =>
+    log_mode(LogMode).
 
 
 top_level ?=>
     log_d_v("setlog"),
     print("{log} => "),
     Term = read_term(),
+    nl,
     log_d_vv("setlog :: Term="++Term.to_string),
 
     solve(Term, Res),
 
-    println(Res),
+    nl,
+    println("Result: " ++ Res.to_string),
 
     if anothersol() == 1 then 
         fail
     end.
     
 top_level =>
-    println(no11), nl,
+    println("no!"), nl,
     top_level.
 
 anothersol() = A => 
@@ -33,47 +45,109 @@ anothersol() = A =>
     A = confirm("Another solution?").
 
 
-solve(Formulas, FormulaRes) =>
+solve(Formulas, FormulaRes) ?=>
     log_d_v("solve/2"),
     FormulasNew := [],
     foreach (Formula in Formulas)
-        log_d_vv("solve/2 :: Formula="++Formula.to_string),
+        log_d_vv("solve/2 :: foreach : Formula before="++Formula.to_string),
         sat(Formula, Res),
-        FormulasNew := FormulasNew ++ Res, %[FormulasNew | FormulaRes],
-        log_d_vv("solve/2 :: FormulasNew="++FormulasNew.to_string),
+        log_d_vv("solve/2 :: foreach : Res="++Res.to_string),
+        FormulasNew := FormulasNew ++ Res,
+        log_d_vv("solve/2 :: foreach : FormulasNew="++FormulasNew.to_string),
     end,
     log_d_vv("solve/2 :: Formulas="++Formulas.to_string),
     log_d_vv("solve/2 :: FormulasNew="++FormulasNew.to_string),
+    println(Formulas.to_string ++ "  ==>  " ++ FormulasNew.to_string),
     if FormulasNew !== Formulas then
+        log_d_vv("solve/2 :: FOld not equal FNew"),
         solve(FormulasNew, FormulaRes)
     else
+        log_d_vv("solve/2 :: FOld equal FNew"),
         FormulaRes = FormulasNew
     end.
+solve(_, Res) => println("fail!"), Res = "".
     
 
 sat(F1, FR), F1 == [] => 
-    log_d_vv("step/2 :: s1"),
-    FR = [], 
-    true.
+    log_d_vv("sat/2 :: empty"),
+    FR = [].
 sat(F1, FnewR) =>
-    log_d_vv("step/2 :: s2"),
+    log_d_vv("sat/2 :: formula"),
     rule(F1,FnewR).
 
+% add a rule preprocessr that removes duplicates from $set([ ... ])
+rule(eq(T1,T2), R) => eq(T1, T2, R).
+rule(neq(T1, T2), R) => neq(T1, T2, R).
+rule(or(T1, T2), R) => or(T1, T2, R).
+rule(sin(T, X), R) => sin(T, X, R).
 
-rule(eq(T1,T2), R), ground(T1), ground(T2) =>
-    log_d_vv("rule eq 1"),
-    R = [],
-    T1 == T2.
-rule(eq(T1,T2), R) =>
-    log_d_vv("rule eq 2"),
-    R = [],
-    T1 = T2.
 
-rule(neq(T1,T2), R), ground(T1), ground(T2) =>
-    log_d_vv("rule neq 1"),
-    R = [],
-    T1 !== T2.
-rule(neq(T1,T2), R) =>
-    log_d_vv("rule neq 2"),
+% ****** equality constraints
+
+eq(T1, T2, R), nonvar(T1), var(T2) =>   % 2
+    log_d_vv("eq :: eq_2"),
+    eq(T2, T1, R).
+%eq(T1, T2, R) =>               % 3
+%    true. % TBD
+%eq(T1, T2, R) =>               % 4
+%    true. % TBD
+eq(T1, T2, R) =>               % 1, 5
+    log_d_vv("eq :: eq_1,5"),
+    R = [], T1 = T2.
+
+
+% ****** inequality constraints
+
+neq(T1, T2, R), T1 == T2 =>     % 1
+    log_d_vv("neq :: neq_1"),
+    R = [], fail.
+neq(T1, T2, R), nonvar(T1), var(T2) =>   % 2
+    log_d_vv("neq :: neq_2"),
+    neq(T2, T1, R).
+%neq(T1, T2, R) =>               % 3
+%    true. % TBD
+neq(T1, T2 , R) =>
+    log_d_vv("neq :: general"),
     R = [$neq(T1,T2)].
 
+
+% ****** membership constraints
+
+sin(T, set([]), R) =>         % 1
+    log_d_vv("sin :: in_1"), 
+    R = [], 
+    false.
+sin(T, set([U | UR]), R) =>   % 2
+    log_d_vv("sin :: in_2"),
+    T1 = $eq(T, U),
+    T2 = $sin(T, $set(UR)),
+    or(T1, T2, R).
+sin(T, set(A), R) =>          % 3
+    log_d_vv("sin :: in_3"), 
+    R = [$set([T|X])].
+
+
+% ****** goal disjunction
+
+% may implement an "or" list
+or(T1, _T2, R) ?=> 
+    log_d_vv("or :: first"), 
+    sat(T1, R).
+or(_T1, T2, R) ?=> 
+    log_d_vv("or :: second"),
+    sat(T2, R).
+
+
+
+% *********************************************************
+% aux predicates 
+
+
+%occur_check(X,Y):-
+%      Y =.. [_|R],
+%      occur_check_list(X,R).
+%
+%occur_check_list(_X,[]):-!.
+%occur_check_list(X,[A|R]):-
+%      occur_check(X,A),
+%      occur_check_list(X,R).
