@@ -3,3 +3,5 @@
 
 # ignore picat compiled files.
 *.qi
+
+__asm
