@@ -1,4 +1,4 @@
-PICAT SETLOG JOURNAL
+****************             PICAT SETLOG JOURNAL             ****************
 
 Luca Parolari <luca.parolari23@gmail.com>
 
@@ -205,3 +205,61 @@ di alcune regole da altre regole è stato impossibile segmentare tutto.
 Implementata la modifica dinamica della debug mode da variabili globali.
 
 Implementazione di uno scheletro per il testing delle regole di inferenza.
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                              08 May                                   -
+------------------------------------------------------------------------------
+- More on rewrite rules                                                      -
+------------------------------------------------------------------------------
+
+Incontro con il prof sull'interprete inviato ad inizio di maggio.
+E' emerso che:
+
+(1) il nondeterminismo del predicato solve è quello che probabilmente porta
+  l'interprete a chiedere più volte se si vuole un'altra soluzione o meno.
+
+(2) bisogna verificare l'esistenza di un predicato functor fornito da Picat
+  per estrarre da una variabile il nome del funtore e la sua arità.
+  Questo può essere sfruttato per l'implementazione delle regole eq_6,
+  eq_9, neq_6, neq_7.
+  Dal manuale si evince che esitono dei predicati per estrarre nome ed arità
+  dalle struct.
+
+(3) bisogna verificare come implementare l'or nelle regole del neq,
+  specialmente neq_7 e scegliere se implementarle tramite il nondeterminismo
+  della regola in se o se usare l'API or/2, nel caso bisognerebbe trovare un
+  modo per scrivere gli or annidati come
+    or(x_1, or(x2, or(..., xn))) 
+  che sarebbero processati come 
+    x_1 \/ x_2 \/ ... \/ x_n.
+
+(4) potrebbe essere introdotto l'uso di variabili globali per verificare 
+  che il constraint store sia stato modificato o meno e rendere più 
+  efficiente la solve/2.
+  Inoltre, le globali potrebbero essere usate anche per mantenere i nomi 
+  delle variabili lette da linea di comando.
+
+Inoltre sono state discusse le regole di riscrittura per insiemi.
+
+In particolare, nella eq_8 
+  {x|A} = {y|B}  -->
+
+  x = y /\ A = B          (caso base)
+  x = y /\ {x|A} = B      (verifica un caso particolare)
+  x = y /\ A = {y|B}      (verifica un altro caso particolare)
+  A = {y|N} /\ {x|N} = B  (**1)
+
+**1: A è uguale all'insieme {y|N} (y resto N) e B è uguale a {x|N}, dove
+     è da notare che la N (resto) è la stessa in entrambi.
+
+Le regole "duali" valgono per il neq. 
+
+Nota: per quanto riguarda la neq_4, si intende dire che *t* è un termine
+  composto, esempio una lista e quindi
+    X neq [X] 
+  elimina il vincolo di neq perché è sempre vero
+  Non si applica nel caso di insiemi e non si applica nel caso di funtori
+  perché quella regola è dopo.

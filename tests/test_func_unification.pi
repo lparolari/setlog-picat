@@ -1,0 +1,2 @@
+eq(X) => 
+    println(X), println(Y).

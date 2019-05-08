@@ -34,10 +34,13 @@ top_level ?=>
 
     if anothersol() == 1 then 
         fail
+    else
+        nl, nl,
+        top_level()
     end.
     
 top_level =>
-    println("no!"), nl,
+    println("no!"), nl, nl,
     top_level.
 
 anothersol() = A => 
@@ -45,7 +48,7 @@ anothersol() = A =>
     A = confirm("Another solution?").
 
 
-solve(Formulas, FormulaRes) ?=>
+solve(Formulas, FormulaRes) => %?=>
     log_d_v("solve/2"),
     FormulasNew := [],
     foreach (Formula in Formulas)
@@ -65,7 +68,7 @@ solve(Formulas, FormulaRes) ?=>
         log_d_vv("solve/2 :: FOld equal FNew"),
         FormulaRes = FormulasNew
     end.
-solve(_, Res) => println("fail!"), Res = "".
+%solve(_, Res) => println("fail!"), Res = "".
     
 
 sat(F1, FR), F1 == [] => 
@@ -75,7 +78,7 @@ sat(F1, FnewR) =>
     log_d_vv("sat/2 :: formula"),
     rule(F1,FnewR).
 
-% add a rule preprocessr that removes duplicates from $set([ ... ])
+% add a rule preprocessor that removes duplicates from $set([ ... ])
 rule(eq(T1,T2), R) => eq(T1, T2, R).
 rule(neq(T1, T2), R) => neq(T1, T2, R).
 rule(or(T1, T2), R) => or(T1, T2, R).
@@ -91,10 +94,14 @@ eq(T1, T2, R), nonvar(T1), var(T2) =>   % 2
 %    true. % TBD
 %eq(T1, T2, R) =>               % 4
 %    true. % TBD
-eq(T1, T2, R) =>               % 1, 5
+eq(T1, T2, R) =>                % 1, 5
     log_d_vv("eq :: eq_1,5"),
     R = [], T1 = T2.
-
+%eq(f(T1), g(T2)) =>             % 6
+%    false.
+%eq(F([T|T1]), F([U|U1])) =>     % 9
+%    eq(T, U, R), 
+%    eq($f([T1]), $f([U1]), R).
 
 % ****** inequality constraints
 
