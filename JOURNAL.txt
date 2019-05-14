@@ -263,3 +263,30 @@ Nota: per quanto riguarda la neq_4, si intende dire che *t* è un termine
   elimina il vincolo di neq perché è sempre vero
   Non si applica nel caso di insiemi e non si applica nel caso di funtori
   perché quella regola è dopo.
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                           13,14 May                                   -
+------------------------------------------------------------------------------
+- Implementing some rewrite rules                                            -
+------------------------------------------------------------------------------
+
+Implementate le regole eq_1, eq_6, eq_8, eq_9.
+Implementate le regole neq_3, neq_4
+Implementato l'or su lista.
+Dai test è emerso che (vedere demos.txt) dall'interprete setlog possono 
+essere richiesti goal in cui tutto si scrive senza $ di struct.
+Eesempio:
+  neq(f(1,2), g(1,2))  
+sia neq che esiste come predicate che f e g che invece non esistono possono
+essere scritti senza $
+  neq($f(1,2), $g(1,2))  
+invece genera un errore in neq perchè controlla i nomi delle struct e 
+diventano _$_term_construct
+
+Da linea di comando picat invece (NON SO PERCHÉ), neq($f(1,2), $g(1,2))
+funziona, mentre `neq(f(1,2), g(1,2))` no. Nella seconda vorrebbe trovare
+le funzioni f e g da eseguire, ma non esisono. La prima invece non so come 
+caspita possa funzionare!
