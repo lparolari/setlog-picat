@@ -63,7 +63,7 @@ anothersol() = A =>
     A = confirm("Another solution?").
 
 
-solve(Formulas, FormulaRes) => %?=>
+solve(Formulas, FormulaRes) =>
     log_d_v("solve/2"),
     FormulasNew := [],
     foreach (Formula in Formulas)
@@ -83,7 +83,6 @@ solve(Formulas, FormulaRes) => %?=>
         log_d_vv("solve/2 :: FOld equal FNew"),
         FormulaRes = FormulasNew
     end.
-%solve(_, Res) => println("fail!"), Res = "".
     
 
 sat(F1, FR), F1 == [] => 
@@ -94,30 +93,74 @@ sat(F1, FnewR) =>
     log_d_vv("sat/2 :: F1="++F1.to_string++", FnewR="++FnewR.to_string),
     rule(F1,FnewR).
 
-% add a rule preprocessor that removes duplicates from $set([ ... ])
+% ENHANCEMENT: add a rule preprocessor that removes duplicates from $set([ ... ]) 
+% -- no more required?
 rule(eq(T1,T2), R) => eq(T1, T2, R).
 rule(neq(T1, T2), R) => neq(T1, T2, R).
 rule(or(T1, T2), R) => or(T1, T2, R).
-rule(sin(T, X), R) => sin(T, X, R).
+rule(or(T), R) => or(T, R).
+rule(insl(T, X), R) => insl(T, X, R).
 
 
 % ****** equality constraints
 
-eq(T1, T2, R), nonvar(T1), var(T2) =>   % 2
+eq(T1, T2, R), T1 == T2 =>                                         % 1
+    log_d_vv("eq :: eq_1"), R = [].
+eq(T1, T2, R), nonvar(T1), var(T2) =>                              % 2
     log_d_vv("eq :: eq_2"),
     eq(T2, T1, R).
-%eq(T1, T2, R) =>               % 3
-%    true. % TBD
-%eq(T1, T2, R) =>               % 4
-%    true. % TBD
-eq(T1, T2, R) =>                % 1, 5
-    log_d_vv("eq :: eq_1,5"),
+eq(T1@set(A), T2@set(B), R) =>                                     % 3
+    log_d_vv("eq :: eq_3"),
+    L = [],
+    foreach (Y in B) 
+        if Y !== T1 then   L := L ++ [Y]   end 
+    end,
+    L := [L | N], L := L.flatten(),
+    T1 := L, R = [].
+eq(T1, T2, R), occur_check(T1, T2) =>                              % 4
+    log_d_vv("eq :: eq_4"),
+    fail.
+eq(T1, T2, R), var(T1) => %, nonvar(T2) => % siamo sicuri del nonvar??  % 5
+    log_d_vv("eq :: eq_5"),
     R = [], T1 = T2.
-%eq(f(T1), g(T2)) =>             % 6
-%    false.
-%eq(F([T|T1]), F([U|U1])) =>     % 9
-%    eq(T, U, R), 
-%    eq($f([T1]), $f([U1]), R).
+eq(T1, T2, R), struct(T1), struct(T2), T1.name() !== T2.name() =>  % 6
+    log_d_vv("eq :: eq_6"),
+    fail.
+% 7
+eq(set([X|A]), set([Y|B]), R) ?=>                                  % 8a
+    log_d_vv("eq :: eq_8a"),
+    eq(X, Y, R1),
+    eq($set(A), $set(B), R2),
+    R = R1 ++ R2.
+eq(set([X|A]), set([Y|B]), R) ?=>                                  % 8b
+    log_d_vv("eq :: eq_8b"),
+    eq(X, Y, R1),
+    eq($set([X|A]), B, R2),
+    R = R1 ++ R2.
+eq(set([X|A]), set([Y|B]), R) ?=>                                  % 8c
+    log_d_vv("eq :: eq_8c"),
+    eq(X, Y, R1),
+    eq(A, $set([Y|B]), R2),
+    R = R1 ++ R2.
+eq(set([X|A]), set([Y|B]), R) =>                                   % 8d
+    log_d_vv("eq :: eq_8d"),
+    eq(A, $set([Y|N]), R1),
+    eq($set([X|N]), B, R2),
+    R = R1 ++ R2.
+eq(T1, T2, R), struct(T1), struct(T2) =>                           % 9
+    log_d_vv("eq :: eq_9"),
+    R = [],
+    T1.name() == T2.name(),  % redundant check.
+    T1.arity() == T2.arity(),
+    foreach (I1 in 1..T1.arity())
+        X1 := T1[I1], X2 := T2[I1],
+        eq(X1, X2, RR),
+        R := R ++ RR,
+    end.
+eq(T1, T2, R) =>  % temp
+    log_d_vv("eq :: eq_temp"),
+    R = [], T1 = T2.
+
 
 % ****** inequality constraints
 
