@@ -152,7 +152,9 @@ sin(T, set(A), R) =>          % 3
 
 % ****** goal disjunction
 
-% may implement an "or" list
+%% or(T1, T2, R) is nondet
+%
+% Try satisfying a binary disjunction goal.
 or(T1, _T2, R) ?=> 
     log_d_vv("or :: first"), 
     sat(T1, R).
@@ -160,6 +162,20 @@ or(_T1, T2, R) ?=>
     log_d_vv("or :: second"),
     sat(T2, R).
 
+%% or(T, R) is nondet
+%
+% Try satisfying a list of disjunction goals.
+or([], []) ?=>
+    % nothing to do.
+    log_d_vv("or/2 :: first").
+or([T|Tr], R) ?=>
+    % try satifying the first element of the list.
+    log_d_vv("or/2 :: second"),
+    sat(T, R).
+or([T|Tr], R) ?=>
+    % try satisfyng the rest of the list.
+    log_d_vv("or/2 :: third"),
+    or(Tr, R).
 
 
 % *********************************************************
