@@ -121,33 +121,59 @@ eq(T1, T2, R) =>                % 1, 5
 
 % ****** inequality constraints
 
-neq(T1, T2, R), T1 == T2 =>     % 1
+neq(T1, T2, R), T1 == T2 =>                                        % 1
     log_d_vv("neq :: neq_1"),
-    R = [], fail.
-neq(T1, T2, R), nonvar(T1), var(T2) =>   % 2
+    fail.
+neq(T1, T2, R), nonvar(T1), var(T2) =>                             % 2
     log_d_vv("neq :: neq_2"),
     neq(T2, T1, R).
-%neq(T1, T2, R) =>               % 3
-%    true. % TBD
-neq(T1, T2 , R) =>
-    log_d_vv("neq :: general"),
-    R = [$neq(T1,T2)].
+% 3
+neq(T1, T2, R), occur_check(T1, T2) =>                             % 4 
+    R = [].
+neq(set([X|A]), set([Y|B]), R) ?=>                                 % 5a
+    log_d_vv("neq :: neq_5a"),
+    insl(N, $set([X|A]), R1),
+    not insl(N, $set([Y|B]), R2),
+    R = R1 ++ R2.
+neq(set([X|A]), set([Y|B]), R) ?=>                                 % 5b
+    log_d_vv("neq :: neq_5b"),
+    not insl(N, $set([X|A]), R1),
+    insl(N, $set([Y|B]), R2),
+    R = R1 ++ R2.
+neq(T1, T2, R), struct(T1), struct(T2), name(T1) !== name(T2) =>   % 6
+    log_d_vv("neq :: neq_6"),
+    R = [].
+neq(T1, T2, R), struct(T1), struct(T2), name(T1) == name(T2) =>    % 7
+    log_d_vv("neq :: neq_7"),
+    T1.arity() == T2.arity(),
+    X = [],
+    println(X),
+    foreach (I in 1..T1.arity())
+        X1 = T1[I], X2 = T2[I],
+        X := X ++ [$neq(X1, X2)]
+    end,
+    writeln(X),
+    or(X, R).
+neq(T1, T2, R) => % temp
+    log_d_vv("neq :: neq_temp"),
+    R = [$neq(T1, T2)].
 
 
 % ****** membership constraints
 
-sin(T, set([]), R) =>         % 1
-    log_d_vv("sin :: in_1"), 
+insl(T, set([]), R) =>         % 1
+    log_d_vv("insl :: in_1"), 
     R = [], 
     false.
-sin(T, set([U | UR]), R) =>   % 2
-    log_d_vv("sin :: in_2"),
+insl(T, set([U | UR]), R) =>   % 2
+    log_d_vv("insl :: in_2"),
     T1 = $eq(T, U),
-    T2 = $sin(T, $set(UR)),
+    T2 = $insl(T, $set([UR].flatten())),
     or(T1, T2, R).
-sin(T, set(A), R) =>          % 3
-    log_d_vv("sin :: in_3"), 
-    R = [$set([T|X])].
+insl(T, set(A), R) =>          % 3
+    log_d_vv("insl :: in_3"), 
+    A = [T|X],  % non è un vincolo, giusto? Non serve restituirlo, basta riscrivere A (?)
+    R = [].
 
 
 % ****** goal disjunction
@@ -181,12 +207,13 @@ or([T|Tr], R) ?=>
 % *********************************************************
 % aux predicates 
 
+%% occur_check(+X, +Y) is det
+% The predicate is true whether the variable X is a member of vars(Y).
+% X: the variable to find.
+% Y: the lookup term.
+occur_check(X, Y) => membchk(X, vars(Y)).
 
-%occur_check(X,Y):-
-%      Y =.. [_|R],
-%      occur_check_list(X,R).
-%
-%occur_check_list(_X,[]):-!.
-%occur_check_list(X,[A|R]):-
-%      occur_check(X,A),
-%      occur_check_list(X,R).
+% R is the boolean result used for the function is_occur_check.
+occur_check(X, Y, R) ?=> occur_check(X, Y), R = 1.
+occur_check(X, Y, R) => R = 0.
+is_occur_check(X, Y) = R => occur_check(X, Y, R).
