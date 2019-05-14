@@ -1,24 +1,39 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%                     The {log} interpreter and solver
+%%
+%%
+%%                               developed by
+%%                   L uca Parolari        Gianfranco Rossi
+%%
+%%                                 May 2019
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% module setlog
+%
+% @author Luca Parolari <luca.parolari23@gmail.com>
+% @version 0.3.0
+
 module setlog.
 
 import prompt.
 import log_h.
 
-%%%
-% [eq(1,1)].
-% [neq(X,1), neq(X,2)].
-% [sin(x,set([a,b,x]))].
-% [sin(1, set([]))].
-% [or(neq(X,1), eq(X,1))].
-
+% picat setlog.pi
 main => setlog.
 
+% setlog entry point.
 setlog => 
-    setlog([$log_mode(none)]),
+    setlog([$log_mode([none])]),
     top_level.
-
+% setlog entry point with options.
 setlog([$log_mode(LogMode)]) =>
     log_mode(LogMode).
-
+% setlog entry point with debugger enabled.
+setlog_d =>
+    setlog([$log_mode([v, vv, vvv])]),
+    top_level.
 
 top_level ?=>
     log_d_v("setlog"),
@@ -76,6 +91,7 @@ sat(F1, FR), F1 == [] =>
     FR = [].
 sat(F1, FnewR) =>
     log_d_vv("sat/2 :: formula"),
+    log_d_vv("sat/2 :: F1="++F1.to_string++", FnewR="++FnewR.to_string),
     rule(F1,FnewR).
 
 % add a rule preprocessor that removes duplicates from $set([ ... ])
