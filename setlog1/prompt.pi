@@ -1,3 +1,8 @@
+%% module prompt
+%
+% @author Luca Parolari <luca.parolari23@gmail.com>
+% @version 0.1.0
+
 module prompt.
 
 import util.

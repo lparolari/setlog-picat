@@ -1,9 +1,12 @@
-module global.
-
 %% module global
 %
 % Provide global variables, i.e. variables that can be accessed from the
 %  whole program and keep their values until picat is powered off.
+%
+% @author Luca Parolari <luca.parolari23@gmail.com>
+% @version 0.1.0
+
+module global.
 
 %% global(+Key) = Value
 %
