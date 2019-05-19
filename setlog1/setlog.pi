@@ -1,0 +1,262 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%                     The {log} interpreter and solver
+%%
+%%
+%%                               developed by
+%%                   L uca Parolari        Gianfranco Rossi
+%%
+%%                                 May 2019
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% module setlog
+%
+% @author Luca Parolari <luca.parolari23@gmail.com>
+% @version 0.3.0
+
+module setlog.
+
+import prompt.
+import log_h.
+
+% picat setlog.pi
+main => setlog.
+
+% setlog entry point.
+setlog => 
+    setlog([$log_mode([none])]),
+    top_level.
+% setlog entry point with options.
+setlog([$log_mode(LogMode)]) =>
+    log_mode(LogMode).
+% setlog entry point with debugger enabled.
+setlog_d =>
+    setlog([$log_mode([v, vv, vvv])]),
+    top_level.
+
+top_level ?=>
+    log_d_v("setlog"),
+    print("{log} => "),
+    Term = read_term(),
+    nl,
+    log_d_vv("setlog :: Term="++Term.to_string),
+
+    solve(Term, Res),
+
+    nl,
+    println("Result: " ++ Res.to_string),
+
+    if anothersol() == 1 then 
+        fail
+    else
+        nl, nl,
+        top_level()
+    end.
+    
+top_level =>
+    println("no!"), nl, nl,
+    top_level.
+
+anothersol() = A => 
+    nl,
+    A = confirm("Another solution?").
+
+
+solve(Formulas, FormulaRes) =>
+    log_d_v("solve/2"),
+    FormulasNew := [],
+    foreach (Formula in Formulas)
+        log_d_vv("solve/2 :: foreach : Formula before="++Formula.to_string),
+        sat(Formula, Res),
+        log_d_vv("solve/2 :: foreach : Res="++Res.to_string),
+        FormulasNew := FormulasNew ++ Res,
+        log_d_vv("solve/2 :: foreach : FormulasNew="++FormulasNew.to_string),
+    end,
+    log_d_vv("solve/2 :: Formulas="++Formulas.to_string),
+    log_d_vv("solve/2 :: FormulasNew="++FormulasNew.to_string),
+    println(Formulas.to_string ++ "  ==>  " ++ FormulasNew.to_string),
+    if FormulasNew !== Formulas then
+        log_d_vv("solve/2 :: FOld not equal FNew"),
+        solve(FormulasNew, FormulaRes)
+    else
+        log_d_vv("solve/2 :: FOld equal FNew"),
+        FormulaRes = FormulasNew
+    end.
+    
+
+sat(F1, FR), F1 == [] => 
+    log_d_vv("sat/2 :: empty"),
+    FR = [].
+sat(F1, FnewR) =>
+    log_d_vv("sat/2 :: formula"),
+    log_d_vv("sat/2 :: F1="++F1.to_string++", FnewR="++FnewR.to_string),
+    rule(F1,FnewR).
+
+% ENHANCEMENT: add a rule preprocessor that removes duplicates from $set([ ... ]) 
+% -- no more required?
+rule(eq(T1,T2), R) => eq(T1, T2, R).
+rule(neq(T1, T2), R) => neq(T1, T2, R).
+rule(or(T1, T2), R) => or(T1, T2, R).
+rule(or(T), R) => or(T, R).
+rule(insl(T, X), R) => insl(T, X, R).
+
+
+% ****** equality constraints
+
+eq(T1, T2, R), T1 == T2 =>                                         % 1
+    log_d_vv("eq :: eq_1"), R = [].
+eq(T1, T2, R), nonvar(T1), var(T2) =>                              % 2
+    log_d_vv("eq :: eq_2"),
+    eq(T2, T1, R).
+eq(T1@set(A), T2@set(B), R) =>                                     % 3
+    log_d_vv("eq :: eq_3"),
+    L = [],
+    foreach (Y in B) 
+        if Y !== T1 then   L := L ++ [Y]   end 
+    end,
+    L := [L | N], L := L.flatten(),
+    T1 := L, R = [].
+eq(T1, T2, R), occur_check(T1, T2) =>                              % 4
+    log_d_vv("eq :: eq_4"),
+    fail.
+eq(T1, T2, R), var(T1) => %, nonvar(T2) => % siamo sicuri del nonvar??  % 5
+    log_d_vv("eq :: eq_5"),
+    R = [], T1 = T2.
+eq(T1, T2, R), struct(T1), struct(T2), T1.name() !== T2.name() =>  % 6
+    log_d_vv("eq :: eq_6"),
+    fail.
+% 7
+eq(set([X|A]), set([Y|B]), R) ?=>                                  % 8a
+    log_d_vv("eq :: eq_8a"),
+    eq(X, Y, R1),
+    eq($set(A), $set(B), R2),
+    R = R1 ++ R2.
+eq(set([X|A]), set([Y|B]), R) ?=>                                  % 8b
+    log_d_vv("eq :: eq_8b"),
+    eq(X, Y, R1),
+    eq($set([X|A]), B, R2),
+    R = R1 ++ R2.
+eq(set([X|A]), set([Y|B]), R) ?=>                                  % 8c
+    log_d_vv("eq :: eq_8c"),
+    eq(X, Y, R1),
+    eq(A, $set([Y|B]), R2),
+    R = R1 ++ R2.
+eq(set([X|A]), set([Y|B]), R) =>                                   % 8d
+    log_d_vv("eq :: eq_8d"),
+    eq(A, $set([Y|N]), R1),
+    eq($set([X|N]), B, R2),
+    R = R1 ++ R2.
+eq(T1, T2, R), struct(T1), struct(T2) =>                           % 9
+    log_d_vv("eq :: eq_9"),
+    R = [],
+    T1.name() == T2.name(),  % redundant check.
+    T1.arity() == T2.arity(),
+    foreach (I1 in 1..T1.arity())
+        X1 := T1[I1], X2 := T2[I1],
+        eq(X1, X2, RR),
+        R := R ++ RR,
+    end.
+eq(T1, T2, R) =>  % temp
+    log_d_vv("eq :: eq_temp"),
+    R = [], T1 = T2.
+
+
+% ****** inequality constraints
+
+neq(T1, T2, R), T1 == T2 =>                                        % 1
+    log_d_vv("neq :: neq_1"),
+    fail.
+neq(T1, T2, R), nonvar(T1), var(T2) =>                             % 2
+    log_d_vv("neq :: neq_2"),
+    neq(T2, T1, R).
+% 3
+neq(T1, T2, R), occur_check(T1, T2) =>                             % 4 
+    R = [].
+neq(set([X|A]), set([Y|B]), R) ?=>                                 % 5a
+    log_d_vv("neq :: neq_5a"),
+    insl(N, $set([X|A]), R1),
+    not insl(N, $set([Y|B]), R2),
+    R = R1 ++ R2.
+neq(set([X|A]), set([Y|B]), R) ?=>                                 % 5b
+    log_d_vv("neq :: neq_5b"),
+    not insl(N, $set([X|A]), R1),
+    insl(N, $set([Y|B]), R2),
+    R = R1 ++ R2.
+neq(T1, T2, R), struct(T1), struct(T2), name(T1) !== name(T2) =>   % 6
+    log_d_vv("neq :: neq_6"),
+    R = [].
+neq(T1, T2, R), struct(T1), struct(T2), name(T1) == name(T2) =>    % 7
+    log_d_vv("neq :: neq_7"),
+    T1.arity() == T2.arity(),
+    X = [],
+    println(X),
+    foreach (I in 1..T1.arity())
+        X1 = T1[I], X2 = T2[I],
+        X := X ++ [$neq(X1, X2)]
+    end,
+    writeln(X),
+    or(X, R).
+neq(T1, T2, R) => % temp
+    log_d_vv("neq :: neq_temp"),
+    R = [$neq(T1, T2)].
+
+
+% ****** membership constraints
+
+insl(T, set([]), R) =>         % 1
+    log_d_vv("insl :: in_1"), 
+    R = [], 
+    false.
+insl(T, set([U | UR]), R) =>   % 2
+    log_d_vv("insl :: in_2"),
+    T1 = $eq(T, U),
+    T2 = $insl(T, $set([UR].flatten())),
+    or(T1, T2, R).
+insl(T, set(A), R) =>          % 3
+    log_d_vv("insl :: in_3"), 
+    A = [T|X],  % non è un vincolo, giusto? Non serve restituirlo, basta riscrivere A (?)
+    R = [].
+
+
+% ****** goal disjunction
+
+%% or(T1, T2, R) is nondet
+%
+% Try satisfying a binary disjunction goal.
+or(T1, _T2, R) ?=> 
+    log_d_vv("or :: first"), 
+    sat(T1, R).
+or(_T1, T2, R) ?=> 
+    log_d_vv("or :: second"),
+    sat(T2, R).
+
+%% or(T, R) is nondet
+%
+% Try satisfying a list of disjunction goals.
+or([], []) ?=>
+    % nothing to do.
+    log_d_vv("or/2 :: first").
+or([T|Tr], R) ?=>
+    % try satifying the first element of the list.
+    log_d_vv("or/2 :: second"),
+    sat(T, R).
+or([T|Tr], R) ?=>
+    % try satisfyng the rest of the list.
+    log_d_vv("or/2 :: third"),
+    or(Tr, R).
+
+
+% *********************************************************
+% aux predicates 
+
+%% occur_check(+X, +Y) is det
+% The predicate is true whether the variable X is a member of vars(Y).
+% X: the variable to find.
+% Y: the lookup term.
+occur_check(X, Y) => membchk(X, vars(Y)).
+
+% R is the boolean result used for the function is_occur_check.
+occur_check(X, Y, R) ?=> occur_check(X, Y), R = 1.
+occur_check(X, Y, R) => R = 0.
+is_occur_check(X, Y) = R => occur_check(X, Y, R).

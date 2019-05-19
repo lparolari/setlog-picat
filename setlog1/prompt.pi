@@ -1,0 +1,28 @@
+%% module prompt
+%
+% @author Luca Parolari <luca.parolari23@gmail.com>
+% @version 0.1.0
+
+module prompt.
+
+import util.
+
+%% prompt(+Q) = A
+%
+% Prompts a user for input.
+prompt(Q) = A =>
+    %TBD
+    throw not_implemented_exception.
+
+%% confirm(+Q) = A
+%
+% Prompts for confirmation (yes/no question) and return the answer
+% as a boolean value (0/1).
+confirm(Q) = A => 
+    print(Q.to_string ++ " (y/n): "),
+    R := read_line().strip(),
+    if R = "y" then 
+        A = 1 
+    else 
+        A = 0
+    end.

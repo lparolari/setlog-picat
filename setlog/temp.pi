@@ -1,0 +1,77 @@
+module temp.
+
+%% module temp
+%
+% Provide temporary files streams in read or write mode with the ability of 
+%  reading and writing on the same file without handling file names and other
+%  annoying stuff.
+
+import global.
+import os.
+
+%% tmp_w(+Key) = TmpFileWriter
+% 
+% Open a file in write mode associating it with Key if the file does not 
+%  exists, otherwise returns the already opened stream binded with Key.
+tmp_w(Key) = TmpFileWriter =>
+    check_tmp_counter(),
+    check_del_list_init(),
+
+    if has_global(Key) == 0 then
+        I := get_i(),
+        global(Key, I),
+        TmpFileWriter = open(".tmp_" ++ I.to_string, write),
+        inc_i()
+    else
+        I := global(Key),
+        TmpFileWriter = open(".tmp_" ++ I.to_string, write)
+    end.
+    
+    %DFL = get_del_file_list(), 
+    %DFL.put(Key).
+
+%% tmp_w(+Key) = TmpFileWriter
+% 
+% Open the exisitng, Key binded file in read mode.
+tmp_r(Key) = TmpFileReader =>
+    check_tmp_counter(),
+    I := global(Key),
+    TmpFileReader = open(".tmp_" ++ I.to_string).
+
+%% tmp_w(+Key) = TmpFileWriter
+% 
+% Delete the Key binded file.
+tmp_d(Key) => 
+    I := global(Key),
+    FN := get_file_name(I),
+    rm(FN).
+
+%% tmp_d_all()
+% 
+% Delete all previously open tmp files.
+%tmp_d_all() =>
+%    foreach (Key in get_del_file_list())
+%        tmp_d(Key)
+%    end.
+
+
+% -------
+% HELPERS
+
+check_tmp_counter() =>
+    % tmp_file_counter initialization to zero.
+    if has_global(tmp_file_counter) == 0 then
+        global(tmp_file_counter, 0)
+    end.   
+
+check_del_list_init() =>
+    if has_global(del_file_list) == 0 then
+        global(del_file_list, new_set())
+    end.
+
+get_i() = I => I = global(tmp_file_counter).
+inc_i() => I = get_i(), I := I + 1, global(tmp_file_counter, I).
+
+%get_del_file_list() = DFL => DFL = global(del_file_list).
+
+get_file_name(I) = FN => FN = ".tmp_" ++ I.to_string.

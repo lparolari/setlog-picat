@@ -17,6 +17,7 @@ curl -O http://picat-lang.org/download/picat25_linux64.tar.gz
 curl -O http://picat-lang.org/download/picat25_macx.tar.gz
 ``` 
 for other versions or for source code, visit the [homepage](http://picat-lang.org/).
+**Note**: the version listed here might not be the latest. Check the website.
 
 - Unzip it in some folder of your computer.
 

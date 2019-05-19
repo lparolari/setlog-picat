@@ -1,0 +1,58 @@
+*** EQ ***
+
+% 3
+%%% cmd version
+eq($set([1,2]), $set([4,5,$set([1,2])]), R).
+
+% 4 
+%%% cmd version
+eq(X, $set(X), R).
+%%% setlog version
+[eq(X, set(X))].
+
+% 9
+[eq(f(1,2,3), f(1,2,3))].
+[eq(f(X,2,3), f(1,Y,3))].
+[eq($f(X,2,3), $f(1,Y,3))].
+[eq($f(X,2,3), $f(1,Y,3))].
+[eq(f(X,2,3), g(1,Y,3))].
+
+
+
+*** NEQ ***
+
+[neq(f(1,2), g(1,2))].
+[neq($f(1,2), $g(1,2))].
+
+
+*** IN ***
+% 1
+[insl(1, set([]))].
+[insl(X, set([]))].
+% 2
+[insl(1, set([1,2,3]))].
+[insl(1, set([3,2,1]))].
+[insl(X, set([1,2,3]))].
+[insl(X, set([3,2,1]))].
+[insl(X, set([1,Y]))].      % should check.
+% 3
+[insl(1, set(Y))].
+[insl(X, set(Y))].
+
+*** OR ***
+
+%%% or([T1, T2, ..., TN])
+% setlog version
+[or([eq(X,1), eq(X,2), eq(X,3)])].
+% command line version
+or([$eq(X,1), $eq(X,2), $eq(X,3)]).
+
+
+
+
+%%% 
+% [eq(1,1)].
+% [neq(X,1), neq(X,2)].
+% [sin(x,set([a,b,x]))].
+% [sin(1, set([]))].
+% [or(neq(X,1), eq(X,1))].

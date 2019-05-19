@@ -1,0 +1,21 @@
+import setlog.
+
+main =>
+    true.
+
+eq_tests() =>
+    % check results...
+    eq(1, 1, R),
+    eq(1, Y, R),
+    eq(X, 1, R),
+    eq(X, Y, R),
+    eq(1, 2, R).
+
+neq_tests() =>
+    % check results...
+    neq(1, 2, R),
+    neq(1, Y, R),
+    neq(X, 1, R),
+    neq(X, Y, R),
+    neq(1, 1, R),
+    neq(X, X, R).

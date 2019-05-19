@@ -1,0 +1,292 @@
+****************             PICAT SETLOG JOURNAL             ****************
+
+Luca Parolari <luca.parolari23@gmail.com>
+
+This document, apart from headers, is intentionally in italian.
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                            11 Genuary                                 -
+------------------------------------------------------------------------------
+- The beginning                                                              -
+------------------------------------------------------------------------------
+
+L'idea è nata dalla volonta di voler conoscere un linguaggio funzionale ed
+il suo funzionamento, applicando la programmazione per vincoli CLP.
+
+Sono stato coinvolto con la proposta di sviluppare sostanzialmente un 
+risolutore di formule per il linguaggio {log}, basato su insiemi.
+
+Il linguaggio L_BR (di {log}) è un linguaggio a vincoli che fornisce insiemi 
+estensionali finiti e relazioni binarie su operazioni base come entità 
+primitive del linguaggio.
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                          February/March                               -
+------------------------------------------------------------------------------
+- Some learnings                                                             -
+------------------------------------------------------------------------------
+
+Proof of concepts per picat, lettura manuali, documenti e raccolta 
+informazioni necessarie per procedere con il lavoro.
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                           mid-March                               -
+------------------------------------------------------------------------------
+- Utils and first setlog solver                                              -
+------------------------------------------------------------------------------
+
+Aggiunte alcune funzioni di utilità in picat, abbozzata la prima struttura
+del solver, risoluzione dei problemi comuni e apprendimento del funzionamento
+di Picat.
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                           March-April                                 -
+------------------------------------------------------------------------------
+- More on setlog solver                                                      -
+------------------------------------------------------------------------------
+
+Aggiunta una struttura più consistente per il risolutore setlog grazie al
+file di prova in prolog del prof. Primi risultati.
+
+Inizio risooluzioni dei primi problemi ed adeguamento del codice alle 
+necessità ed a Picat stesso.
+Particolare difficoltà nella riproduzione delle funzioni dai predicati, 
+trasformati grazie all'uso del "fail" e della programmazione logica.
+
+Trasformato il risolutore, ove possibile, in uno il più possibile imperativo
+per facile comprensione altrui.
+
+Aggiunte funzioni di utilità come logger, e trasformatore di predicati in
+funzioni. 
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                            11 April                                   -
+------------------------------------------------------------------------------
+- Global variables and tmp file helper                                       -
+------------------------------------------------------------------------------
+
+Aggiunto un helper per le variabili globali che scrive su get_global_map(),
+possibilità:
+- get_heap_map()
+    Created on the heap after the thread is created
+    Changes are undone when backtracking
+- get_global_map()
+    Created in the global area when Picat is started
+    Changes are not undone when backtracking
+- get_table_map()
+    Created in the table area when Picat is started
+    Keys and values are hash-consed
+    Changes are not undone when backtracking
+
+fonte: http://picat-lang.org/download/picat_tutorial.pdf
+
+Aggiunto un helper per file temporanei che dia la possibilità di leggere e 
+scrivere sullo stesso file senza trattare i nomi ed in modo semplice ed 
+efficace.
+
+Questi helper serviranno per l'implementazione della conversione variabili
+picat a variabili reali per quanto riguarda i nomi.
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                           13-14 April                                 -
+------------------------------------------------------------------------------
+- First set, in and notin constraint tests                                   -
+------------------------------------------------------------------------------
+
+Aggiunte le prime prove per l'implementazione di set e dei vincoli in e 
+notin nel solver. E' stato necessario implementare una funzione smember 
+per verificare l'esistenza di un elemento (anche variabile) nel set 
+sfruttando il nondeterminismo. Complicanze nell'utilizzo del nondeterminismo 
+"inline" con picat.
+Note:
+ - implementazione naive in (ok)
+ - implementazione naive notin (ovvero, `not rule($in(...))`) non 
+   funzionante.
+
+Aggiunti modulo per l'interazione con utente (user input).
+
+Project refactor (moved modules to setlog folder).
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                              15 April                                 -
+------------------------------------------------------------------------------
+- Picat problems                                                             -
+------------------------------------------------------------------------------
+
+Riscontrati una buona dose di problemi con picat:
+
+(1) chiudere di seguito due stream read e write comporta il troncamenteo del
+    file (motivi ignoti);
+
+(2) la read_term di picat quando incontra il $ trasforma la clausola in 
+    qualcosa tipo _$_term_construct, e tenta di costruire una struct.
+    Questo non va per nulla bene nell'implementazione della traduzione 
+    da "picat names a real names", che sbarella non appena prende uno di
+    questi e fallisce miseramente la traduzione.
+    **Soluzione**: non mi sembra una soluzione l'aggiunta di casi eccezionali
+                   tipo 
+      se:            _$_term_construct allora non fare nulla
+      altrimenti:   fai come solito
+    ...;
+ 
+(3) pattern matching è notevolmente problematico per il problemi di chiudere
+    al punto (2), obbliga a scrivere cose come [$eq(X,1)] da passare alla
+    rule(eq(X,Y)) ma sempre per la traduzione da "picat names a real 
+    names" è un problema. 
+    **Soluzione**: manipolazione di stringhe toglie tutti i dollari (MAH).
+
+Fix and bugs setlog e mie implementazioni:
+
+(1) modulo temp: 
+      - chiusura file demandata all'utente.
+        Questa implementazione
+           X = tmp_w(Key), X.close()
+           Y = tmp_r(Key), Y.close()
+        causa il troncamento del file con conseguente perdita di informazione.
+
+      - eliminazione file possibile (a quanto pare) senza chiusura degli 
+        stream. 
+        
+(2) modulo read_term_sl:
+     - aggiunto ignore delle variabili duplicate e utilizzato il modulo
+       temp.
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                              17 April                                 -
+------------------------------------------------------------------------------
+- Some fixes                                                                 -
+------------------------------------------------------------------------------
+
+Fix del modulo read_term_sl
+Update temp module: removed del files.
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                              29 April                                 -
+------------------------------------------------------------------------------
+- A new setlog intepreter                                                    -
+------------------------------------------------------------------------------
+
+Nuova implementazione dell'interprete setlog sfruttando la potenza dei
+predicati. Le regole di risoluzione sono state separate dall'interpretazione
+della sintassi delle formule, ed offerte come delle api di programmazione.
+
+Es: rule(eq(T1, T2), R) => eq(T1, T2, R). 
+ in cui la rule richiama l'api per la risoluzione delle equality constraints.
+
+Tentata la segmentazione delle regole di risoluzione, ma data la dipendenza 
+di alcune regole da altre regole è stato impossibile segmentare tutto.
+
+Implementata la modifica dinamica della debug mode da variabili globali.
+
+Implementazione di uno scheletro per il testing delle regole di inferenza.
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                              08 May                                   -
+------------------------------------------------------------------------------
+- More on rewrite rules                                                      -
+------------------------------------------------------------------------------
+
+Incontro con il prof sull'interprete inviato ad inizio di maggio.
+E' emerso che:
+
+(1) il nondeterminismo del predicato solve è quello che probabilmente porta
+  l'interprete a chiedere più volte se si vuole un'altra soluzione o meno.
+
+(2) bisogna verificare l'esistenza di un predicato functor fornito da Picat
+  per estrarre da una variabile il nome del funtore e la sua arità.
+  Questo può essere sfruttato per l'implementazione delle regole eq_6,
+  eq_9, neq_6, neq_7.
+  Dal manuale si evince che esitono dei predicati per estrarre nome ed arità
+  dalle struct.
+
+(3) bisogna verificare come implementare l'or nelle regole del neq,
+  specialmente neq_7 e scegliere se implementarle tramite il nondeterminismo
+  della regola in se o se usare l'API or/2, nel caso bisognerebbe trovare un
+  modo per scrivere gli or annidati come
+    or(x_1, or(x2, or(..., xn))) 
+  che sarebbero processati come 
+    x_1 \/ x_2 \/ ... \/ x_n.
+
+(4) potrebbe essere introdotto l'uso di variabili globali per verificare 
+  che il constraint store sia stato modificato o meno e rendere più 
+  efficiente la solve/2.
+  Inoltre, le globali potrebbero essere usate anche per mantenere i nomi 
+  delle variabili lette da linea di comando.
+
+Inoltre sono state discusse le regole di riscrittura per insiemi.
+
+In particolare, nella eq_8 
+  {x|A} = {y|B}  -->
+
+  x = y /\ A = B          (caso base)
+  x = y /\ {x|A} = B      (verifica un caso particolare)
+  x = y /\ A = {y|B}      (verifica un altro caso particolare)
+  A = {y|N} /\ {x|N} = B  (**1)
+
+**1: A è uguale all'insieme {y|N} (y resto N) e B è uguale a {x|N}, dove
+     è da notare che la N (resto) è la stessa in entrambi.
+
+Le regole "duali" valgono per il neq. 
+
+Nota: per quanto riguarda la neq_4, si intende dire che *t* è un termine
+  composto, esempio una lista e quindi
+    X neq [X] 
+  elimina il vincolo di neq perché è sempre vero
+  Non si applica nel caso di insiemi e non si applica nel caso di funtori
+  perché quella regola è dopo.
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                           13,14 May                                   -
+------------------------------------------------------------------------------
+- Implementing some rewrite rules                                            -
+------------------------------------------------------------------------------
+
+Implementate le regole eq_1, eq_6, eq_8, eq_9.
+Implementate le regole neq_3, neq_4
+Implementato l'or su lista.
+Dai test è emerso che (vedere demos.txt) dall'interprete setlog possono 
+essere richiesti goal in cui tutto si scrive senza $ di struct.
+Eesempio:
+  neq(f(1,2), g(1,2))  
+sia neq che esiste come predicate che f e g che invece non esistono possono
+essere scritti senza $
+  neq($f(1,2), $g(1,2))  
+invece genera un errore in neq perchè controlla i nomi delle struct e 
+diventano _$_term_construct
+
+Da linea di comando picat invece (NON SO PERCHÉ), neq($f(1,2), $g(1,2))
+funziona, mentre `neq(f(1,2), g(1,2))` no. Nella seconda vorrebbe trovare
+le funzioni f e g da eseguire, ma non esisono. La prima invece non so come 
+caspita possa funzionare!

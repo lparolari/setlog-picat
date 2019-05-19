@@ -1,0 +1,35 @@
+%% module log_h
+%
+% @author Luca Parolari <luca.parolari23@gmail.com>
+% @version 0.2.0
+
+module log_h.
+
+import global.
+
+log_d(X) => "D: ".print, X.println.
+log_e(X) => "E: ".print, X.println.
+log_i(X) => "I: ".print, X.println.
+
+log_d_v(X)   => log_d(X, v).
+log_d_vv(X)  => log_d(X, vv).
+log_d_vvv(X) => log_d(X, vvv).
+
+
+log_d(X, V), membchk(V, log_mode()) => log_d(X).
+log_d(X, V), membchk(all, log_mode()) => log_d(X).
+log_d(X, V) => true.
+
+log_mode() = X => 
+    if has_global(log_mode) == 0 then
+        global(log_mode, no)
+    end,
+    X = global(log_mode).
+
+log_mode(Value) =>
+    global(log_mode, Value).
+
+% log none -> nessun log
+% log v    -> solo entrata nella funzione
+% log vv   -> da definire
+% log vvv  -> tutto
