@@ -13,12 +13,13 @@
 %% module setlog
 %
 % @author Luca Parolari <luca.parolari23@gmail.com>
-% @version 0.3.0
+% @version 0.3.1
 
 module setlog.
 
 import prompt.
 import log_h.
+import lset.
 
 % picat setlog.pi
 main => setlog.
@@ -29,9 +30,16 @@ setlog =>
     top_level.
 % setlog entry point with options.
 setlog([$log_mode(LogMode)]) =>
-    log_mode(LogMode).
+    log_mode(LogMode),
+    top_level.
 % setlog entry point with debugger enabled.
 setlog_d =>
+    setlog([$log_mode([v])]),
+    top_level.
+setlog_dd =>
+    setlog([$log_mode([v, vv])]),
+    top_level.
+setlog_ddd =>
     setlog([$log_mode([v, vv, vvv])]),
     top_level.
 
@@ -67,20 +75,20 @@ solve(Formulas, FormulaRes) =>
     log_d_v("solve/2"),
     FormulasNew := [],
     foreach (Formula in Formulas)
-        log_d_vv("solve/2 :: foreach : Formula before="++Formula.to_string),
+        log_d_vvv("solve/2 :: foreach : Formula before="++Formula.to_string),
         sat(Formula, Res),
-        log_d_vv("solve/2 :: foreach : Res="++Res.to_string),
+        log_d_vvv("solve/2 :: foreach : Res="++Res.to_string),
         FormulasNew := FormulasNew ++ Res,
-        log_d_vv("solve/2 :: foreach : FormulasNew="++FormulasNew.to_string),
+        log_d_vvv("solve/2 :: foreach : FormulasNew="++FormulasNew.to_string)
     end,
-    log_d_vv("solve/2 :: Formulas="++Formulas.to_string),
-    log_d_vv("solve/2 :: FormulasNew="++FormulasNew.to_string),
+    log_d_vvv("solve/2 :: Formulas="++Formulas.to_string),
+    log_d_vvv("solve/2 :: FormulasNew="++FormulasNew.to_string),
     println(Formulas.to_string ++ "  ==>  " ++ FormulasNew.to_string),
     if FormulasNew !== Formulas then
-        log_d_vv("solve/2 :: FOld not equal FNew"),
+        log_d_vvv("solve/2 :: FOld not equal FNew"),
         solve(FormulasNew, FormulaRes)
     else
-        log_d_vv("solve/2 :: FOld equal FNew"),
+        log_d_vvv("solve/2 :: FOld equal FNew"),
         FormulaRes = FormulasNew
     end.
     
@@ -90,7 +98,7 @@ sat(F1, FR), F1 == [] =>
     FR = [].
 sat(F1, FnewR) =>
     log_d_vv("sat/2 :: formula"),
-    log_d_vv("sat/2 :: F1="++F1.to_string++", FnewR="++FnewR.to_string),
+    log_d_vvv("sat/2 :: F1="++F1.to_string++", FnewR="++FnewR.to_string),
     rule(F1,FnewR).
 
 % ENHANCEMENT: add a rule preprocessor that removes duplicates from $set([ ... ]) 
@@ -104,29 +112,57 @@ rule(insl(T, X), R) => insl(T, X, R).
 
 % ****** equality constraints
 
+eq(T1, T2, R) ?=>
+    log_d_vvv("eq :: eq_DEBUG : T1=" ++ T1.to_string ++ ", T2=" ++ T2.to_string),
+    fail.
+
 eq(T1, T2, R), T1 == T2 =>                                         % 1
-    log_d_vv("eq :: eq_1"), R = [].
+    log_d_vv("eq :: eq_1"),
+    R = [].
+
 eq(T1, T2, R), nonvar(T1), var(T2) =>                              % 2
     log_d_vv("eq :: eq_2"),
     eq(T2, T1, R).
-eq(T1@set(A), T2@set(B), R) =>                                     % 3
+
+% non deterministic because can fail in not occur_check or in T1 == T2.lrest()
+eq(T1, T2, R), T1.is_lset(), T2.is_lset() ?=>                       % 3
     log_d_vv("eq :: eq_3"),
-    L = [],
-    foreach (Y in B) 
-        if Y !== T1 then   L := L ++ [Y]   end 
-    end,
-    L := [L | N], L := L.flatten(),
-    T1 := L, R = [].
-eq(T1, T2, R), occur_check(T1, T2) =>                              % 4
+    not occur_check(T1, T2.lhead()),  % SOUNDNESS?
+    T1 == T2.lrest(),
+    eq(T1, new_lset(T2.lhead(), _N), R).
+
+eq(T1, T2, _R), occur_check(T1, T2) =>                              % 4
     log_d_vv("eq :: eq_4"),
-    fail.
-eq(T1, T2, R), var(T1) => %, nonvar(T2) => % siamo sicuri del nonvar??  % 5
+    fail. % intentionally fail.
+
+eq(T1, T2, R), var(T1) => %, nonvar(T2) => % siamo sicuri del nonvar?? FIXME  % 5
     log_d_vv("eq :: eq_5"),
     R = [], T1 = T2.
-eq(T1, T2, R), struct(T1), struct(T2), T1.name() !== T2.name() =>  % 6
+
+eq(T1, T2, _R), struct(T1), struct(T2), T1.name() !== T2.name() =>  % 6
     log_d_vv("eq :: eq_6"),
-    fail.
-% 7
+    fail. % intentionally fail.
+    
+eq(T1, T2, R), T1.is_lset(), T2.is_lset() =>                        % 7 
+    log_d_vv("eq :: eq_7"), 
+    T1.lrest() == T2.lrest(),
+    R = [],
+    if T1.lhead().len() !== 0 then
+        X = T1.lhead().first(),
+        foreach (I in 1..T2.lhead().len())
+            nth(I, T2.lhead(), Y), % get i-th element from T2.lhead()
+            log_d_vvv("eq :: eq_7 : I=" ++ I.to_string),
+            log_d_vvv("eq :: eq_7 : X=" ++ X.to_string ++ ", Y=" ++ Y.to_string),
+            eq(X, Y, R1),
+            eq( new_lset(slice(T1.lhead(), 2), T1.lrest()),  % t_2..t_m
+                new_lset(slice(T2.lhead(),1,I-1) ++ slice(T2.lhead(),I+1,T2.lhead().len()), T2.lrest()), % u_1..u_j-1,u_j+1..u_n
+                R2),
+            log_d_vvv("eq :: eq_7 : R1=" ++ R1.to_string ++ ", R2=" ++ R2.to_string),
+            R := R ++ R1 ++ R2
+        end,
+        R := R.flatten()
+    end.
+
 eq(set([X|A]), set([Y|B]), R) ?=>                                  % 8a
     log_d_vv("eq :: eq_8a"),
     eq(X, Y, R1),
@@ -155,16 +191,16 @@ eq(T1, T2, R), struct(T1), struct(T2) =>                           % 9
     foreach (I1 in 1..T1.arity())
         X1 := T1[I1], X2 := T2[I1],
         eq(X1, X2, RR),
-        R := R ++ RR,
+        R := R ++ RR
     end.
-eq(T1, T2, R) =>  % temp
-    log_d_vv("eq :: eq_temp"),
-    R = [], T1 = T2.
+%eq(T1, T2, R) =>  % temp
+%    log_d_vv("eq :: eq_temp"),
+%    R = [], T1 = T2.
 
 
 % ****** inequality constraints
 
-neq(T1, T2, R), T1 == T2 =>                                        % 1
+neq(T1, T2, _R), T1 == T2 =>                                        % 1
     log_d_vv("neq :: neq_1"),
     fail.
 neq(T1, T2, R), nonvar(T1), var(T2) =>                             % 2
@@ -204,7 +240,7 @@ neq(T1, T2, R) => % temp
 
 % ****** membership constraints
 
-insl(T, set([]), R) =>         % 1
+insl(_T, set([]), R) =>         % 1
     log_d_vv("insl :: in_1"), 
     R = [], 
     false.
@@ -215,7 +251,7 @@ insl(T, set([U | UR]), R) =>   % 2
     or(T1, T2, R).
 insl(T, set(A), R) =>          % 3
     log_d_vv("insl :: in_3"), 
-    A = [T|X],  % non è un vincolo, giusto? Non serve restituirlo, basta riscrivere A (?)
+    A = [T|_X],  % non è un vincolo, giusto? Non serve restituirlo, basta riscrivere A (?)
     R = [].
 
 
@@ -237,11 +273,11 @@ or(_T1, T2, R) ?=>
 or([], []) ?=>
     % nothing to do.
     log_d_vv("or/2 :: first").
-or([T|Tr], R) ?=>
+or([T|_Tr], R) ?=>
     % try satifying the first element of the list.
     log_d_vv("or/2 :: second"),
     sat(T, R).
-or([T|Tr], R) ?=>
+or([_T|Tr], R) ?=>
     % try satisfyng the rest of the list.
     log_d_vv("or/2 :: third"),
     or(Tr, R).
@@ -258,5 +294,5 @@ occur_check(X, Y) => membchk(X, vars(Y)).
 
 % R is the boolean result used for the function is_occur_check.
 occur_check(X, Y, R) ?=> occur_check(X, Y), R = 1.
-occur_check(X, Y, R) => R = 0.
+occur_check(_X, _Y, R) => R = 0.
 is_occur_check(X, Y) = R => occur_check(X, Y, R).

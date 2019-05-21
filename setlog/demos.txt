@@ -3,12 +3,22 @@
 % 3
 %%% cmd version
 eq($set([1,2]), $set([4,5,$set([1,2])]), R).
+%%% setlog version
+[ eq( set([1,2]), set([4,5,set([1,2])]) ) ].
+
+[ eq( set([1,2],not_a_value,[lset]), set([3,4],set([1,2],not_a_value,[lset]),[lset]) ) ].
 
 % 4 
 %%% cmd version
 eq(X, $set(X), R).
 %%% setlog version
 [eq(X, set(X))].
+
+% 7
+[ eq( set(1,2,3, set(4,5)), set(1,2,3, set(6,5)) ) ].
+[ eq( neq_lset([1,2,3]) )]
+
+[ eq( set([1,2],not_a_value,[lset]), set([3,4],not_a_value,[lset]) ) ].
 
 % 9
 [eq(f(1,2,3), f(1,2,3))].
