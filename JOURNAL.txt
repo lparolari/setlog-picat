@@ -290,3 +290,32 @@ Da linea di comando picat invece (NON SO PERCHÉ), neq($f(1,2), $g(1,2))
 funziona, mentre `neq(f(1,2), g(1,2))` no. Nella seconda vorrebbe trovare
 le funzioni f e g da eseguire, ma non esisono. La prima invece non so come 
 caspita possa funzionare!
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                              21 May                                   -
+------------------------------------------------------------------------------
+- Working on lset                                                            -
+------------------------------------------------------------------------------
+
+Aggiornato il readme.
+
+Problemi con la gestione degli insiemi nella struttura dati stabilita:
+  set([...]).
+Ho quindi implementato una sorta di classe lset per la gestione degli insiemi
+che gestisca la creazione di nuove istanze, la testa ed il resto degli 
+insiemi. (Vedere lset.pi)
+
+Riscrittura del modulo setlog con la nuova implementazione di set.
+
+Nell'incontro con il prof di domani (22/05/2019) andranno definite:
+ - una sorta di roadmap;
+ - come proseguire con l'implementazione delle regole;
+ - come TESTARE ciò che faccio per capire se è corretto o meno (anche da use
+ cases della tesi di vetere per esempio);
+ - a quale obiettivo arrivare;
+ - dettagli logistici come
+   - come, dove e quando vederci;
+   - come e quando iniziare a scrivere la tesi, che struttura dare.
