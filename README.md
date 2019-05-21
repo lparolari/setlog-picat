@@ -17,20 +17,20 @@ fundamental forms of set designation and a number of primitive operations for se
 
 # Table of Contents
 
-   * [Features (Working on)](#features-working-on)
-   * [Install](#install)
+   * [<g-emoji class="g-emoji" alias="art" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f3a8.png">🎨</g-emoji> Features (Working on)](#-features-working-on)
+   * [<g-emoji class="g-emoji" alias="floppy_disk" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f4be.png">💾</g-emoji> Install](#-install)
       * [Usage](#usage)
-   * [Contributing](#contributing)
-   * [Authors](#authors)
-   * [License](#license)
+   * [<g-emoji class="g-emoji" alias="gift" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f381.png">🎁</g-emoji> Contributing](#-contributing)
+   * [<g-emoji class="g-emoji" alias="heart" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/2764.png">❤️</g-emoji> Authors](#️-authors)
+   * [<g-emoji class="g-emoji" alias="mortar_board" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f393.png">🎓</g-emoji> License](#-license)
 
 
-# Features (Working on)
+# 🎨 Features (Working on)
 
 TBD
 
 
-# Install
+# 💾 Install
 - Install the Picat engine following the install procedure [here](http://picat-lang.org/).
 - Download setlog engine for picat
 ```
@@ -49,7 +49,7 @@ $ Picat> setlog.
 $ {log} => Enter your formula here...
 ```
 
-# Contributing
+# 🎁 Contributing
 
 1. Fork it!
 2. Create your feature branch: `git checkout -b my-new-feature`
@@ -58,12 +58,12 @@ $ {log} => Enter your formula here...
 5. Submit a pull request :D
 
 
-# Authors
+# ❤️ Authors
 
 Luca Parolari <<luca.parolari23@gmail.com>>
 
 
-# License
+# 🎓 License
 
 This project is licensed under MIT license. See [LICENSE.txt](license.txt) file for details.7
 
