@@ -18,7 +18,7 @@ eq(X, $set(X), R).
 [ eq( set(1,2,3, set(4,5)), set(1,2,3, set(6,5)) ) ].
 [ eq( neq_lset([1,2,3]) )]
 
-[ eq( set([1,2],not_a_value,[lset]), set([3,4],not_a_value,[lset]) ) ].
+[ eq( lset([1,2],not_a_value), lset([3,4],not_a_value) ) ].
 
 % 9
 [eq(f(1,2,3), f(1,2,3))].

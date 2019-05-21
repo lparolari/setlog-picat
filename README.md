@@ -37,6 +37,7 @@ TBD
 
 
 ## 💾 Install
+
 - Install the Picat engine following the install procedure [here](http://picat-lang.org/).
 - Download the setlog engine for picat
 ```
@@ -44,16 +45,16 @@ git clone https://github.com/lparolari/setlog-picat-draft.git
 cd setlog-picat-draft
 ```
 
-### Usage
+## ▶️ Usage
 
-TBD (add more code example!!)
-
-```
-$ picat
-$ Picat> cl(setlog).
-$ Picat> setlog.
+```bash
+$ picat               # start picat interpreter.
+$ Picat> cl(setlog).  # compile and load the setlog module into picat
+$ Picat> setlog.      # start setlog intepreter.
 $ {log} => Enter your formula here...
 ```
+
+
 
 ## 🎁 Contributing
 
