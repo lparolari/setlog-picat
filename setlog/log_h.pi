@@ -15,6 +15,7 @@ log_d_v(X)   => log_d(X, v).
 log_d_vv(X)  => log_d(X, vv).
 log_d_vvv(X) => log_d(X, vvv).
 
+log_here() => log_d_vvv("here").
 
 log_d(X, V), membchk(V, log_mode()) => log_d(X).
 log_d(X, V), membchk(all, log_mode()) => log_d(X).
