@@ -1,0 +1,6 @@
+test(set(X)) =>
+    println(X),
+    println(Y).
+
+%test(set([1,2])).
+%test($set([1,2])).

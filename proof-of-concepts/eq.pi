@@ -1,0 +1,69 @@
+module eq.
+
+%% module eq.
+%
+% Implement rewrite rules for equality constraints.
+
+import struct_h.
+import log_h.
+
+%% eq(+X:term, -Res:bool)
+% 
+% The equality solver entry point.
+eq(X, Result) => 
+    log_d("eq/2"),
+    
+    %Res = 1,
+
+    %%
+    % Nota: questo meccanismo va esteso con il check della struct di X
+    %   che in base al tipo $eq, $neq, ecc. capisce a quale funzione 
+    %   mandare l'input.
+    %   In questo caso, visto che si lavora solo con $eq, tutto viene mandato
+    %   a eq/2.     
+
+    % Nota: non ha senso...
+    %if struct(X[1]) then 
+    %    log_d("X[1] struct"),
+    %    log_d(X[1]),
+    %    eq(X[1], Res1),
+    %    Result = (Res /\ Res1)
+    %elseif struct(X[1]) then
+    %    log_d("X[2] struct"),
+    %    eq(X[2], Res2),
+    %    Result = (Res /\ Res2)
+    %else
+    %   log_d("X struct, X[1] and X[2] atoms"),
+    %   eq_h(X, Res3),
+    %   Result = Res3,
+    %end.
+
+    eq_h(X, Result).
+
+%% eq_h(+X:term, -Res:bool)
+% 
+% The real eq solver.
+eq_h(X, Result) => 
+    log_d("eq_h/2"),
+    eq_1(X, R),
+    % Tutte le volte questo if???
+    if R == 1 then 
+        Result = R
+    else 
+        Result = 0 
+    end,
+    log_d("test").
+
+
+% X is equal to itself.
+%eq_1(X, Res), X[1] = X[2] => log_d("eq_1_t"), Res = 1.
+%eq_1(X, Res) => log_d("eq_1_f"), Res = 0.
+eq_1(X, Res), X[1] == X[2] => Res = 1.
+eq_1(X, Res) => Res = 0.
+
+
+% X is not a variable.
+%eq_2(X, Res) ?=> 
+%    not struct(X),
+%    X[1] == X[2], Res = 1.
+%eq_2(X, Res) ?=> Res = 0.

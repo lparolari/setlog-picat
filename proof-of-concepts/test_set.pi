@@ -1,0 +1,76 @@
+import util.
+
+main =>
+    test_const_yes,
+    test_const_no, 
+    test_var_elem,
+    test_var_set.
+
+%in($set(X))
+
+true = 1.
+false = 0.
+
+test_const_yes =>
+    println("****** test_const_yes"),
+    S = $set([1,2]),
+    rule($in(2, S), Res),
+    Res.println.
+
+test_const_no ?=>
+    println("****** test_const_no"),
+    S = $set([1,2]),
+    rule($in(3, S), Res),
+    Res.println.
+test_const_no =>
+    println("no").
+
+test_var_elem =>
+    println("****** test_var_elem"),
+    S = $set([1,2]),
+    rule($in(X, S), Res),
+    println(Res),
+    if anothersol() == 1 then 
+        fail
+    end.
+
+test_var_set =>
+    println("****** test_var_set"),
+    S = $set([1,X]),
+    rule($in(2, S), Res),
+    Res.println.
+
+%my rule
+%rule(in(X, $set(Y)), Res) =>
+%    smember(X, Y, Res).
+
+smember(X, [H|_T], Z) ?=> X = H, Z = H.
+smember(X, [_H|T], Z) ?=>
+    smember(X, T, Z).
+
+
+rule(in(X, set(S)), Res) =>
+    if is_ground(S) == 1 then
+        member(X, S),
+        Res := []
+    else 
+        Res := $eq(S, $set([X|_N]))
+    end,
+    println(Res).
+
+confirm(Q) = A => 
+    print(Q.to_string ++ " (y/n): "),
+    R := read_line().strip(),
+    if R = "y" then 
+        A = 1 
+    else 
+        A = 0
+    end.
+    
+anothersol() = A => 
+    A = confirm("Another solution?").
+    
+%% is_ground(+T:term) = Res:bool
+is_ground(T) = Res => is_ground(T, Res).
+is_ground(T, Res), ground(T)  => Res = 1.
+is_ground(T, Res)  => Res = 0.

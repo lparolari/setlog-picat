@@ -1,0 +1,33 @@
+import read_term_sl.
+import temp.
+
+main =>
+    T = read_term_sl([$variable_names(VarNames)]),
+    T.println, VarNames.println, 
+
+    T1 = convert(T, VarNames),
+
+    T1.to_string.println.
+    
+
+convert(Term, VarNames) = TermRealNames =>
+    TmpFileWriter = tmp_w(tmp1),
+    TmpFileWriter.println(Term.to_string),
+    TmpFileWriter.close(),
+
+    TmpFileReader = tmp_r(tmp1), 
+
+    NewTerm := "",
+
+    while (not at_end_of_stream(TmpFileReader))
+        read_picat_token(TmpFileReader, TokenType, TokenValue),
+        if TokenType == var then 
+            NewTerm := NewTerm ++ VarNames.get(TokenValue).to_string
+        else 
+            NewTerm := NewTerm ++ TokenValue.to_string
+        end,
+    end,
+
+    TermRealNames = NewTerm,
+    
+    tmp_d(tmp1).

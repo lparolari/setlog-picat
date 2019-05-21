@@ -1,0 +1,8 @@
+%%member(Term, List, Res) =>
+%    member(Term, List),
+%    Res = List.
+
+smember(X, [H|_T], Z) ?=> X = H, Z = H.
+smember(X, [_H|T], Z) ?=>
+    smember(X, T, Z).
+    
