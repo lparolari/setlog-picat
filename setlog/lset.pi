@@ -1,0 +1,48 @@
+module lset.
+
+import log_h.
+
+% L is always a list of set's element.
+% R is a variable representing the rest of the set, if the set hasn't a rest R will be not_a_value.
+new_lset() = S     => H = [], S = new_lset(H).
+new_lset(H) = S    => R = not_a_value, S = new_lset(H, R).
+new_lset(H, R) = S => S = $lset(H, R).
+% a sort of copy constructor.
+% new_lset(Y) = S, Y.is_lset() => S = new_lset(Y.lhead(), Y.lrest()).  % FIXME
+
+lhead(S) = H => H = S[1].
+lrest(S) = R => R = S[2].
+
+is_lset(S) => S.struct(), S.name() == lset.
+
+is_rest_equal(S1, S2) =>
+    S1.lrest() == S2.lrest(),
+    S1.lrest() !== not_a_value,
+    S2.lrest() !== not_a_value.
+
+
+do_tests =>
+    test_rest_equal_not_a_val,
+    test_rest_equal_numeral,
+    test_rest_equal_variable.
+
+test_rest_equal_not_a_val() ?=>
+    X = new_lset([1,2,3]),
+    Y = new_lset([4,5,6]),
+    X.is_rest_equal(Y),
+    println("Failed test_rest_equal_not_a_val").
+test_rest_equal_not_a_val() => println("Success test_rest_equal_not_a_val").
+
+test_rest_equal_numeral() ?=>
+    X = new_lset([1,2,3], 2),
+    Y = new_lset([4,5,6], 2),
+    X.is_rest_equal(Y),
+    println("Success test_rest_equal_numeral").
+test_rest_equal_numeral() => println("Failed test_rest_equal_numeral").
+
+test_rest_equal_variable() ?=>
+    X = new_lset([1,2,3], T),
+    Y = new_lset([4,5,6], T),
+    X.is_rest_equal(Y),
+    println("Success test_rest_equal_variable").
+test_rest_equal_variable() => println("Failed test_rest_equal_variable").
