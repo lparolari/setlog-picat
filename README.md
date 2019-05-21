@@ -1,79 +1,72 @@
-# setlog-picat-draft
+# setlog-picat
 
-The objective of this repository is to track changes of drafts and proof of concepts for the [{log}](http://people.dmi.unipr.it/gianfranco.rossi/setlog.Home.html) (read setlog)
-language implementation in picat.
+[![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](https://forthebadge.com) [![forthebadge](https://forthebadge.com/images/badges/contains-cat-gifs.svg)](https://forthebadge.com)
 
-The work in this repository is strongly referenced to the {log} project.
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com) [![GitHub issues](https://img.shields.io/github/issues-raw/lparolari/setlog-picat.svg)](https://github.com/lparolari/setlog-picat/issues) [![PRs Welcome](https://img.shields.io/github/license/lparolari/setlog-picat.svg)](http://makeapullrequest.com)
 
+[here goes a gif explaining what this repository is about]
 
-## Install
-- First, you need to install [picat](http://picat-lang.org/).
-```
-# for Windows
-curl -O http://picat-lang.org/download/picat25_win64.zip 
-# for Linux
-curl -O http://picat-lang.org/download/picat25_linux64.tar.gz
-# for MacOs
-curl -O http://picat-lang.org/download/picat25_macx.tar.gz
-``` 
-for other versions or for source code, visit the [homepage](http://picat-lang.org/).
-**Note**: the version listed here might not be the latest. Check the website.
+**!! This repository contains the code for my bachelor degree thesis project.**
 
-- Unzip it in some folder of your computer.
+*setlog-picat* is a pure implementation of [{log}] (read setlog) in [picat]. This work is related to the {log} 
+project.
 
-- Add the picat folder to the environment variable `PATH`
-```
-# in Linux
-export PATH="$PATH:/path/to/picat"
-```
+{log} project aims at the design and development of a Constraint Logic Programming language that embodies the
+fundamental forms of set designation and a number of primitive operations for set management. 
 
 
-## Usage
+# Table of Contents
 
-Download the repository
+   * [Features (Working on)](#features-working-on)
+   * [Install](#install)
+      * [Usage](#usage)
+   * [Contributing](#contributing)
+   * [Authors](#authors)
+   * [License](#license)
+
+
+# Features (Working on)
+
+TBD
+
+
+# Install
+- Install the Picat engine following the install procedure [here](http://picat-lang.org/).
+- Download setlog engine for picat
 ```
 git clone https://github.com/lparolari/setlog-picat-draft.git
 cd setlog-picat-draft
 ```
 
-Execute the picat code
-```
-$ picat test1.pi
-```
-or, in picat interpreter
+## Usage
+
+TBD (add more code example!!)
+
 ```
 $ picat
-$ Picat> cl(test1).
-$ Picat> main.
+$ Picat> cl(setlog).
+$ Picat> setlog.
+$ {log} => Enter your formula here...
 ```
 
+# Contributing
 
-## Author
+1. Fork it!
+2. Create your feature branch: `git checkout -b my-new-feature`
+3. Commit your changes: `git commit -am 'Add some feature'`
+4. Push to the branch: `git push origin my-new-feature`
+5. Submit a pull request :D
+
+
+# Authors
+
 Luca Parolari <<luca.parolari23@gmail.com>>
 
 
-## License
-```
-Copyright (c) 2019 Luca Parolari
+# License
 
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
+This project is licensed under MIT license. See [LICENSE.txt](license.txt) file for details.7
 
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
-```
+[{log}](http://people.dmi.unipr.it/gianfranco.rossi/setlog.Home.html)
+[picat](http://picat-lang.org/)
