@@ -1,6 +1,0 @@
-GlobVar = 1.
-
-main =>
-    println(GlobVar).
-
-% global variables not working in picat!

@@ -1,6 +1,0 @@
-module testcat.
-
-import log_h.
-
-assert_equal(X, Assertion) ?=> X == Assertion, log_i("SUCCESS"). 
-assert_equal(X, Assertion) ?=> log_e("FAILED").

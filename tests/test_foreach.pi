@@ -1,9 +1,0 @@
-import log_h.
-import functions_h.
-
-main =>
-    T = [$or($eq(X,a),$neq(X,c)), $or($eq(X,a),$eq(Z,b)), $neq($f(X),$f(a))],
-    foreach (F in T)
-        F.println,
-        F.println
-    end .
