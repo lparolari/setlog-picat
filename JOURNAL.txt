@@ -319,3 +319,31 @@ Nell'incontro con il prof di domani (22/05/2019) andranno definite:
  - dettagli logistici come
    - come, dove e quando vederci;
    - come e quando iniziare a scrivere la tesi, che struttura dare.
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                              22 May                                   -
+------------------------------------------------------------------------------
+- Goal direction                                                             -
+------------------------------------------------------------------------------
+
+Dall'incotro sono emerse delle novità.
+
+(1) i test case possono essere riassunti nei seguenti:
+ - {}       // empty set
+ - X        // var
+ - {X, Y}   // closed set
+ - {X | R}  // open set
+da attribuire ad entrambe le parti delle relazioni binarie, generando almeno
+16 casi.
+
+(2) nall risluzione dei vincoli non bisogna essere greedy, i vincoli non vanno
+risolti subito, fatta eccezione delle eq constraints. I neq non vanno
+assolutamente risolti subito, i nuovi vincoli vanno inseriti nel constraint 
+e risolti al giro dopo.
+
+(3) la rappresentazione insiemistica con lset va bene; da sperimentare.
+
+(4) il goal ultimo è l'implementazione di clp(set)
