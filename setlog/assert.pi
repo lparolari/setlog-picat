@@ -1,0 +1,14 @@
+import log_h.
+
+new_test() = T => T = $test(NumerOfTests, NumberOfSuccess, NumberOfFailed).
+new_assert(Name) = A => A = $assert(Name).
+
+aname(A) = Name => Name = A[1].
+
+assert_equal(A, Expected, Actual), Expected == Actual => 
+    log_i("SUCCESS " ++ A.aname().to_string() ++ " - assert_equal(ex:" ++ Expected.to_string ++ ", ac:" ++ Actual.to_string ++ ")").
+assert_equal(A, Expected, Actual) => 
+    log_e("FAILED " ++ A.aname().to_string() ++ " - assert_equal(ex:" ++ Expected.to_string ++ ", ac:" ++ Actual.to_string ++ ")").
+
+assert_fail_failed(A) => log_e("FAILED " ++ A.aname().to_string() ++ " - assert_fail").
+assert_fail(A) => log_i("SUCCESS " ++ A.aname().to_string() ++ " - assert_fail").

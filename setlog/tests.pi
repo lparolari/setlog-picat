@@ -1,7 +1,16 @@
 import setlog.
+import assert.
+import log_h.
 
 main =>
-    true.
+    setlog_eq1_1_test, setlog_eq1_2_test,
+    setlog_eq2_1_test, 
+    setlog_eq3_1_test, setlog_eq3_2_test, 
+    setlog_eq4_1_test, 
+    setlog_eq5_1_test, setlog_eq5_2_test, 
+    setlog_eq6_1_test, 
+    % 7
+    setlog_eq8_1_test.
 
 eq_tests() =>
     % check results...
@@ -19,3 +28,102 @@ neq_tests() =>
     neq(X, Y, R),
     neq(1, 1, R),
     neq(X, X, R).
+
+
+% ---------------------------------------------------------
+% *** eq1
+
+setlog_eq1_1_test =>
+        A = new_assert("setlog_eq1_1_test"),
+        F = [$eq(1, 1)],
+        solve(F, FF),
+        A.assert_equal([], FF).
+
+setlog_eq1_2_test ?=>
+    A = new_assert("setlog_eq1_2_test"),
+    F = [$eq(1, 2)],
+    solve(F, FF),
+    A.assert_fail_failed().
+setlog_eq1_2_test =>
+    A = new_assert("setlog_eq1_2_test"), 
+    A.assert_fail().
+
+
+% ---------------------------------------------------------
+% *** eq2
+
+setlog_eq2_1_test =>
+        A = new_assert("setlog_eq2_1_test"),
+        F = [$eq(1, X)],
+        solve(F, FF),
+        A.assert_equal([], FF).
+
+
+% ---------------------------------------------------------
+% *** eq3
+
+setlog_eq3_1_test =>
+    A = new_assert("setlog_eq3_1_test"),
+    F = [$eq(X, $lset([1,2], X))],
+    solve(F, FF),
+    A.assert_equal([], FF).
+
+setlog_eq3_2_test ?=>
+    A = new_assert("setlog_eq3_2_test"),
+    %F = [$eq(X, $lset([1,2], X))],
+    %solve(F, FF),
+    fail,
+    A.assert_fail_failed().
+setlog_eq3_2_test => 
+    A = new_assert("setlog_eq3_2_test"),
+    A.assert_fail().
+
+
+% ---------------------------------------------------------
+% *** eq4
+
+setlog_eq4_1_test ?=>
+    A = new_assert("setlog_eq4_1_test"),
+    F = [$eq(X, $lset([X], not_a_value))],
+    solve(F, FF),
+    A.assert_fail_failed().
+setlog_eq4_1_test => 
+    A = new_assert("setlog_eq4_1_test"),
+    A.assert_fail().
+
+
+% ---------------------------------------------------------
+% *** eq5
+
+setlog_eq5_1_test =>
+    A = new_assert("setlog_eq5_1_test"),
+    F = [$eq(X, 1)],
+    solve(F, FF),
+    A.assert_equal([], FF).
+
+setlog_eq5_2_test =>
+    A = new_assert("setlog_eq5_2_test"),
+    F = [$eq(X, Y)],
+    solve(F, FF),
+    A.assert_equal([], FF).
+
+
+% ---------------------------------------------------------
+% *** eq6
+
+setlog_eq6_1_test ?=>
+        A = new_assert("setlog_eq6_1_test"),
+        F = [$eq($f(1), $g(1))],
+        solve(F, FF),
+        A.assert_fail_failed().
+setlog_eq6_1_test => A = new_assert("setlog_eq6_1_test"), A.assert_fail().
+
+
+% ---------------------------------------------------------
+% *** eq8
+
+setlog_eq8_1_test =>
+    A = new_assert("setlog_eq8_1_test"),
+    F = [$eq( lset([b],X), lset([a],Y) )],
+    solve(F, FF),
+    A.assert_equal([], FF).

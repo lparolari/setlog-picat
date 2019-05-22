@@ -8,6 +8,9 @@ eq($set([1,2]), $set([4,5,$set([1,2])]), R).
 
 [ eq( set([1,2],not_a_value,[lset]), set([3,4],set([1,2],not_a_value,[lset]),[lset]) ) ].
 
+X = {1,2|X}  -> true
+[eq(Y, lset([1,2], X))].
+
 % 4 
 %%% cmd version
 eq(X, $set(X), R).
@@ -19,6 +22,10 @@ eq(X, $set(X), R).
 [ eq( neq_lset([1,2,3]) )]
 
 [ eq( lset([1,2],not_a_value), lset([3,4],not_a_value) ) ].
+
+% 8
+[ eq( lset([a],X), lset([b],X) ) ].   % this causes loop if executed without eq_7.
+[ eq( lset([b],X), lset([a],Y) ) ].
 
 % 9
 [eq(f(1,2,3), f(1,2,3))].
