@@ -150,7 +150,7 @@ eq(T1, T2, R), nonvar(T1), var(T2) =>                              % 2
     eq(T2, T1, R).
 
 % non deterministic because can fail in not occur_check or in T1 == T2.lrest()
-eq(T1, T2, R), T1.is_lset(), T2.is_lset() ?=>                       % 3
+eq(T1, T2, R), var(T1), T2.is_lset() ?=>                       % 3
     log_d_vv("eq :: eq_3"),
     not occur_check(T1, T2.lhead()),  % SOUNDNESS?
     T1 == T2.lrest(),
@@ -168,46 +168,47 @@ eq(T1, T2, _R), struct(T1), struct(T2), T1.name() !== T2.name() =>  % 6
     log_d_vv("eq :: eq_6"),
     fail. % intentionally fail.
     
-eq(T1, T2, R), T1.is_lset(), T2.is_lset() =>                        % 7 
-    log_d_vv("eq :: eq_7"), 
-    T1.lrest() == T2.lrest(),
-    R = [],
-    if T1.lhead().len() !== 0 then
-        X = T1.lhead().first(),
-        foreach (I in 1..T2.lhead().len())
-            nth(I, T2.lhead(), Y), % get i-th element from T2.lhead()
-            log_d_vvv("eq :: eq_7 : I=" ++ I.to_string),
-            log_d_vvv("eq :: eq_7 : X=" ++ X.to_string ++ ", Y=" ++ Y.to_string),
-            eq(X, Y, R1),
-            eq( new_lset(slice(T1.lhead(), 2), T1.lrest()),  % t_2..t_m
-                new_lset(slice(T2.lhead(),1,I-1) ++ slice(T2.lhead(),I+1,T2.lhead().len()), T2.lrest()), % u_1..u_j-1,u_j+1..u_n
-                R2),
-            log_d_vvv("eq :: eq_7 : R1=" ++ R1.to_string ++ ", R2=" ++ R2.to_string),
-            R := R ++ R1 ++ R2
-        end,
-        R := R.flatten()
-    end.
+%eq(T1, T2, R), T1.is_lset(), T2.is_lset() =>                        % 7 
+%    log_d_vv("eq :: eq_7"), 
+%    T1.lrest() == T2.lrest(),
+%    R = [],
+%    if T1.lhead().len() !== 0 then
+%        X = T1.lhead().first(),
+%        foreach (I in 1..T2.lhead().len())
+%            nth(I, T2.lhead(), Y), % get i-th element from T2.lhead()
+%            log_d_vvv("eq :: eq_7 : I=" ++ I.to_string),
+%            log_d_vvv("eq :: eq_7 : X=" ++ X.to_string ++ ", Y=" ++ Y.to_string),
+%            eq(X, Y, R1),
+%            eq( new_lset(slice(T1.lhead(), 2), T1.lrest()),  % t_2..t_m
+%                new_lset(slice(T2.lhead(),1,I-1) ++ slice(T2.lhead(),I+1,T2.lhead().len()), T2.lrest()), % u_1..u_j-1,u_j+1..u_n
+%                R2),
+%            log_d_vvv("eq :: eq_7 : R1=" ++ R1.to_string ++ ", R2=" ++ R2.to_string),
+%            R := R ++ R1 ++ R2
+%        end,
+%        R := R.flatten()
+%    end.
 
-eq(set([X|A]), set([Y|B]), R) ?=>                                  % 8a
+eq(T1@lset([X|Xs], A), T2@lset([Y|Ys], B), R), T1.is_lset(), T2.is_lset() ?=>                      % 8a
     log_d_vv("eq :: eq_8a"),
     eq(X, Y, R1),
-    eq($set(A), $set(B), R2),
+    eq(A, B, R2),
     R = R1 ++ R2.
-eq(set([X|A]), set([Y|B]), R) ?=>                                  % 8b
+eq(T1@lset([X|Xs], A), T2@lset([Y|Ys], B), R), T1.is_lset(), T2.is_lset() ?=>                      % 8b
     log_d_vv("eq :: eq_8b"),
     eq(X, Y, R1),
-    eq($set([X|A]), B, R2),
+    eq(T1, B, R2),
     R = R1 ++ R2.
-eq(set([X|A]), set([Y|B]), R) ?=>                                  % 8c
+eq(T1@lset([X|Xs], A), T2@lset([Y|Ys], B), R), T1.is_lset(), T2.is_lset() ?=>                      % 8c
     log_d_vv("eq :: eq_8c"),
     eq(X, Y, R1),
-    eq(A, $set([Y|B]), R2),
+    eq(A, T2, R2),
     R = R1 ++ R2.
-eq(set([X|A]), set([Y|B]), R) =>                                   % 8d
+eq(T1@lset([X|Xs], A), T2@lset([Y|Ys], B), R), T1.is_lset(), T2.is_lset() =>                       % 8d
     log_d_vv("eq :: eq_8d"),
-    eq(A, $set([Y|N]), R1),
-    eq($set([X|N]), B, R2),
+    eq(A, $lset([Y], N), R1),
+    eq($lset([X], N), B, R2),
     R = R1 ++ R2.
+
 eq(T1, T2, R), struct(T1), struct(T2) =>                           % 9
     log_d_vv("eq :: eq_9"),
     R = [],
