@@ -1,0 +1,173 @@
+%% module commands
+%
+% TBD
+
+module commands.
+
+import util.
+import solver.
+import global.
+import log_h.
+
+go => main.
+main =>
+    init, introduce, obeyCommands, halt.
+
+
+%% init() is det
+
+init => 
+    global(last_command_idx, 0), 
+    global(last_commands, new_map()),
+    global(last_args, new_map()), true.
+
+
+%% introduce() is det
+
+introduce =>
+    println("This is the pure implementation of {log} in Picat."),
+    println("Copyright (C) 2019 Luca Parolari <luca.parolari23@gmail.com>"),
+    println("this program is free software, covered by the !!!TBD LICENSE!!! GNU General Public License, and you are welcome to change it and/or distribute copies of it under certain conditions."),
+    println("Type 'copying' to see the conditions"),
+    println("There is ABSOLUTELY NO WARRANTY for this program."),
+    println("Type 'warranty' for details."),
+    println("Type 'help' for advice, 'quit' to exit."),
+    nl, println("Default settings follows."),
+    nl, doCommand(info),
+    nl, true.
+
+
+%% obeyCommands() is det
+% 
+% @desc Realizes the cycle of interaction with the user:
+%  commands are read, their legality is checked and,
+%  if they are correct, they are executed.
+
+obeyCommands() =>
+    while(true)
+        [Command | Arguments] = readCommandLine(),
+        if membchk(Command, [copying,
+                            warranty,
+                            help,
+                            quit,
+                            info,
+                            solve, 
+                            up]) then
+            if Command !== up then
+                push_last_command(Command, Arguments)
+            end,
+            doCommand(Command, Arguments)
+        else 
+            unknownCommand(Command)
+        end
+    end.
+
+
+%% unknownCommand(Command) is det
+
+unknownCommand(Command) =>
+    println("Unknown command '" ++ Command.to_string ++ "': type 'help' for advice or 'quit' to exit").
+
+
+%% doCommand(Command) is det
+
+doCommand(Command) => doCommand(Command, _).
+
+
+%% doCommand(Command, Args) is det
+%
+% @param Command:atom  is an atom representing a command;
+% @param Args:list     is a (possibly empty) list of arguments
+%
+% @desc Causes the execution of the command Command
+%   with arguments Args.
+
+% Quit the system.
+doCommand(quit, _) =>  % TBD
+    println("Bye!"),
+    abort.
+
+% Show warranty informations.
+doCommand(warranty, _) =>  % TBD
+    println("Warranty").
+
+% Show copying informations.
+doCommand(copying, _) =>  % TBD
+    println("Copying").
+
+% Show informations about the system.
+doCommand(info, _) =>  % TBD
+    println("Current log level: " ++ log_mode().to_string).  
+
+% Show the help message.
+doCommand(help, _) =>  % TBD
+    println("Help message").  
+
+% Run the last issued executed command.
+doCommand(up, []) => [Command | Args] = get_last_command(), doCommand(Command, Args).
+doCommand(up, Arguments@[N|_]) => 
+    [Command | Args] = get_last_command(N.to_string().to_int()),
+    doCommand(Command, Args).
+
+% Run the solver and solves the formula passed in the first argument. 
+doCommand(solve, Args) =>  % TBD
+    parse_term(Args.first().to_string(), Term, Vars),
+    top_level(Term),
+    true.  
+
+% Run a commands that does nothing.
+doCommand(skip, _) => 
+    println("No action performed."),
+    true.
+
+
+%% readCommandLine() = CommandArgs is det
+%
+% @return CommandArgs:list  A list of atoms
+%
+% @desc Reads a command line (up to the end-of-line character) from the
+%  controlling terminal, instantiating L with the list of words
+%  (strings of non-blank characters) that have been read.
+%
+% @example 
+%   For example, if the user enters
+%     load test/mergesort
+%   then, on exit,
+%     L = ['load', 'test/mergesort']
+
+readCommandLine() = CommandArgs =>
+    print("{log} => "),
+    Line := read_line(),
+    Line := lstrip(Line),
+	Line := rstrip(Line),
+	Words = split(Line),
+    CommandArgs = [Word.to_atom() : Word in Words].
+
+
+%% push_last_command(Command, Args) is det
+% 
+% @desc Push the command Command with its args Args in the commands history.
+%  The commands history follows an index ordering, starting by zero. Thus, the first pushed
+%  command has the index 0, and the the counter is incremented.
+
+push_last_command(Command, Args) =>
+    I = global(last_command_idx),  CM = global(last_commands),  AM = global(last_args),
+    CM.put(I, Command), AM.put(I, Args), I := I + 1,
+    global(last_command_idx, I), global(last_commands, CM), global(last_args, AM).
+
+
+%% get_last_command(N) = CommandArgs:list is det
+%
+% @desc Retrieve the last N-th - 1 command executed.
+% @return A list which head is the last command executed, and the rest its args.
+
+get_last_command()  = CommandArgs => CommandArgs = get_last_command(0).
+
+get_last_command(N) = CommandArgs, N >= 0 =>
+    I = global(last_command_idx), CM = global(last_commands), AM = global(last_args),
+    I := I - N - 1,
+    if CM.has_key(I), AM.has_key(I) then
+        CommandArgs = [CM.get(I), AM.get(I)],
+    else
+        CommandArgs = [skip | []]
+    end.
