@@ -1,21 +1,21 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
-%%                     The {log} interpreter and solver
+%%                             The {log} solver
 %%
 %%
 %%                               developed by
-%%                   L uca Parolari        Gianfranco Rossi
+%%                    Luca Parolari        Gianfranco Rossi
 %%
 %%                                 May 2019
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% module setlog
+%% module solver
 %
 % @author Luca Parolari <luca.parolari23@gmail.com>
-% @version 0.5.0
+% @version 0.6.0
 
-module setlog.
+module solver.
 
 import prompt.
 import log_h.
@@ -46,11 +46,11 @@ setlog_ddd =>
 hall => 
     log_d_v("hall"),
 
-    print("{log} => "),
+    print("{log1} => "),
     Term = read_term(),
     nl,
 
-    if     Term == halt      then  println("Bye"), abort
+    if     Term == quit      then  println("Bye"), abort
     elseif Term == config    then  println("Configs")     % TBD
     elseif not Term.list()   then  lhelp()    % TBD
     else                           top_level(Term)
@@ -65,32 +65,37 @@ top_level(Term) ?=>
 
     solve(Term, Res),
 
-    nl,
     println("Result: " ++ Res.to_string),
 
     if anothersol() == 1 then 
         fail
     else
-        nl, nl,
-        hall()
+        nl
+        %hall()
     end.
     
 top_level(_) =>
-    println("no!"), nl, nl, 
-    hall().
+    println("no!"), nl.
+    %hall().
 
 anothersol() = A => 
     nl,
     A = confirm("Another solution?").
 
 lhelp() => 
-    println("Welcome to setlog interpreter!"), nl,
+    println("Setlog provides you with the following commands:"), nl,
+    println("help        - the command you have just issued."),
+    println("quit        - quit the setlog intepreter."), nl,
+    println("or "), nl,
+    println("Directly enter a formula.").
+
+lhelpformulas() =>
     println("SYNOPSIS"),
-    println("\t{log} => [COMMAND]"), nl,
-    println("\tCOMMAND ::= CMD | FORMULAS"),
-    println("\tCMD ::= halt | config | help"),
+    println("\t{log} => TERM."), nl,
+    println("\tTERM ::= COMMAND | FORMULAS"), nl,
+    println("\tCOMMAND ::= halt | config | help"), nl,
     println("\tFORMULAS ::= array(FORMULA, FORMULA...)"),
-    println("\tFORMULA ::= eq(TERM, TERM) | neq(TERM, TERM)"), nl,
+    println("\tFORMULA ::= eq(TERM, TERM) | neq(TERM, TERM) | ..."), nl,
     println("\tNote that array(...) is a handy name for [...]."), nl, 
     println("DESCRIPTION"),
     println("\tA short description").
@@ -108,7 +113,7 @@ solve(Formulas, FormulaRes) =>
     end,
     log_d_vvv("solve/2 :: Formulas="++Formulas.to_string),
     log_d_vvv("solve/2 :: FormulasNew="++FormulasNew.to_string),
-    println(Formulas.to_string ++ "  ==>  " ++ FormulasNew.to_string),
+    println("  " ++ Formulas.to_string ++ "  ==>  " ++ FormulasNew.to_string),
     if FormulasNew !== Formulas then
         log_d_vvv("solve/2 :: FOld not equal FNew"),
         solve(FormulasNew, FormulaRes)
