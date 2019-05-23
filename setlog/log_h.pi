@@ -23,7 +23,7 @@ log_d(X, V) => true.
 
 log_mode() = X => 
     if has_global(log_mode) == 0 then
-        global(log_mode, no)
+        global(log_mode, none)
     end,
     X = global(log_mode).
 
@@ -34,3 +34,4 @@ log_mode(Value) =>
 % log v    -> solo entrata nella funzione
 % log vv   -> da definire
 % log vvv  -> tutto
+% loaf all -> tutto
