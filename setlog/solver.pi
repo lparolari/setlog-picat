@@ -21,85 +21,19 @@ import prompt.
 import log_h.
 import lset.
 
-% picat setlog.pi
-main => setlog.
-
-% setlog entry point.
-setlog => 
-    setlog([$log_mode([none])]),
-    hall.
-% setlog entry point with options.
-setlog([$log_mode(LogMode)]) =>
-    log_mode(LogMode),
-    hall.
-% setlog entry point with debugger enabled.
-setlog_d =>
-    setlog([$log_mode([v])]),
-    hall.
-setlog_dd =>
-    setlog([$log_mode([v, vv])]),
-    hall.
-setlog_ddd =>
-    setlog([$log_mode([v, vv, vvv])]),
-    hall.
-
-hall => 
-    log_d_v("hall"),
-
-    print("{log1} => "),
-    Term = read_term(),
-    nl,
-
-    if     Term == quit      then  println("Bye"), abort
-    elseif Term == config    then  println("Configs")     % TBD
-    elseif not Term.list()   then  lhelp()    % TBD
-    else                           top_level(Term)
-    end,
-    
-    hall.
-
 top_level(Term) ?=>
     log_d_v("setlog"),
-    
     log_d_vv("setlog :: Term="++Term.to_string),
-
     solve(Term, Res),
-
     println("Result: " ++ Res.to_string),
+    if anothersol() == 1 then   fail   end.
 
-    if anothersol() == 1 then 
-        fail
-    else
-        nl
-        %hall()
-    end.
-    
 top_level(_) =>
-    println("no!"), nl.
-    %hall().
+    println("no!").
 
 anothersol() = A => 
     nl,
     A = confirm("Another solution?").
-
-lhelp() => 
-    println("Setlog provides you with the following commands:"), nl,
-    println("help        - the command you have just issued."),
-    println("quit        - quit the setlog intepreter."), nl,
-    println("or "), nl,
-    println("Directly enter a formula.").
-
-lhelpformulas() =>
-    println("SYNOPSIS"),
-    println("\t{log} => TERM."), nl,
-    println("\tTERM ::= COMMAND | FORMULAS"), nl,
-    println("\tCOMMAND ::= halt | config | help"), nl,
-    println("\tFORMULAS ::= array(FORMULA, FORMULA...)"),
-    println("\tFORMULA ::= eq(TERM, TERM) | neq(TERM, TERM) | ..."), nl,
-    println("\tNote that array(...) is a handy name for [...]."), nl, 
-    println("DESCRIPTION"),
-    println("\tA short description").
-
 
 solve(Formulas, FormulaRes) =>
     log_d_v("solve/2"),
@@ -154,61 +88,107 @@ eq(T1, T2, R), nonvar(T1), var(T2) =>                              % 2
     log_d_vv("eq :: eq_2"),
     eq(T2, T1, R).
 
-% non deterministic because can fail in not occur_check or in T1 == T2.lrest()
-eq(T1, T2, R), var(T1), T2.is_lset() ?=>                       % 3
+eq(T1, T2, R), var(T1), T2.is_lset(),
+               not occur_check(T1, T2.lhead()),  % SOUNDNESS?
+               T1 == T2.lrest() =>                                 % 3
     log_d_vv("eq :: eq_3"),
-    not occur_check(T1, T2.lhead()),  % SOUNDNESS?
-    T1 == T2.lrest(),
     eq(T1, new_lset(T2.lhead(), _N), R).
 
-eq(T1, T2, _R), occur_check(T1, T2) =>                              % 4
+eq(T1, T2, _R), occur_check(T1, T2) =>                             % 4
     log_d_vv("eq :: eq_4"),
-    fail. % intentionally fail.
+    fail.  % intentionally fail.
 
-eq(T1, T2, R), var(T1) => %, nonvar(T2) => % siamo sicuri del nonvar?? FIXME  % 5
+eq(T1, T2, R), var(T1) =>                                          % 5
     log_d_vv("eq :: eq_5"),
     R = [], T1 = T2.
 
-eq(T1, T2, _R), struct(T1), struct(T2), T1.name() !== T2.name() =>  % 6
+eq(T1, T2, _R), struct(T1), struct(T2), 
+                T1.name() !== T2.name() =>                         % 6
     log_d_vv("eq :: eq_6"),
-    fail. % intentionally fail.
-    
-%eq(T1, T2, R), T1.is_lset(), T2.is_lset() =>                        % 7 
-%    log_d_vv("eq :: eq_7"), 
-%    T1.lrest() == T2.lrest(),
-%    R = [],
-%    if T1.lhead().len() !== 0 then
-%        X = T1.lhead().first(),
-%        foreach (I in 1..T2.lhead().len())
-%            nth(I, T2.lhead(), Y), % get i-th element from T2.lhead()
-%            log_d_vvv("eq :: eq_7 : I=" ++ I.to_string),
-%            log_d_vvv("eq :: eq_7 : X=" ++ X.to_string ++ ", Y=" ++ Y.to_string),
-%            eq(X, Y, R1),
-%            eq( new_lset(slice(T1.lhead(), 2), T1.lrest()),  % t_2..t_m
-%                new_lset(slice(T2.lhead(),1,I-1) ++ slice(T2.lhead(),I+1,T2.lhead().len()), T2.lrest()), % u_1..u_j-1,u_j+1..u_n
-%                R2),
-%            log_d_vvv("eq :: eq_7 : R1=" ++ R1.to_string ++ ", R2=" ++ R2.to_string),
-%            R := R ++ R1 ++ R2
-%        end,
-%        R := R.flatten()
-%    end.
+    fail.  % intentionally fail.
 
-eq(T1@lset([X|Xs], A), T2@lset([Y|Ys], B), R), T1.is_lset(), T2.is_lset() ?=>                      % 8a
+eq(T1@lset(X, A), T2@lset(Y, A), R) =>                             % 7a
+    log_d_vv("eq :: eq_7a"),
+
+    if T1.lhead().len() == 0 then   true   end,
+
+    XElem = T1.lhead().first(),
+    XSlice = slice(T1.lhead(), 2),
+    foreachnd_slice(Y, YElem, YSlice),
+    
+    log_d_vvv("eq:: eq_7 : XElem=" ++ XElem.to_string ++ ", YElem=" ++ YElem.to_string),
+    R1 = [$eq(XElem, YElem)],
+    log_d_vvv("eq:: eq_7 : XSlice=" ++ YSlice.to_string ++ ", YSlice=" ++ XSlice.to_string),
+    R2 = [$eq( $lset(XSlice, A), $lset(YSlice, A))],
+
+    R = R1 ++ R2.
+
+eq(T1@lset(X, A), T2@lset(Y, A), R) =>                             % 7b
+    log_d_vv("eq :: eq_7b"),
+
+    if T1.lhead().len() == 0 then   true   end,
+
+    XElem = T1.lhead().first(),
+    XSlice = X,  % no slice for X.
+    foreachnd_slice(Y, YElem, YSlice),
+    
+    log_d_vvv("eq:: eq_7 : XElem=" ++ XElem.to_string ++ ", YElem=" ++ YElem.to_string),
+    R1 = [$eq(XElem, YElem)],
+    log_d_vvv("eq:: eq_7 : XSlice=" ++ YSlice.to_string ++ ", YSlice=" ++ XSlice.to_string),
+    R2 = [$eq( $lset(XSlice, A), $lset(YSlice, A))],
+
+    R = R1 ++ R2.
+
+eq(T1@lset(X, A), T2@lset(Y, A), R) =>                             % 7c
+    log_d_vv("eq :: eq_7c"),
+
+    if T1.lhead().len() == 0 then   true   end,
+
+    XElem = T1.lhead().first(),
+    XSlice = slice(T1.lhead(), 2),
+    YSlice = Y,  % no slice for Y.
+    foreachnd_slice(Y, YElem, _),
+    
+    log_d_vvv("eq:: eq_7 : XElem=" ++ XElem.to_string ++ ", YElem=" ++ YElem.to_string),
+    R1 = [$eq(XElem, YElem)],
+    log_d_vvv("eq:: eq_7 : XSlice=" ++ YSlice.to_string ++ ", YSlice=" ++ XSlice.to_string),
+    R2 = [$eq( $lset(XSlice, A), $lset(YSlice, A))],
+
+    R = R1 ++ R2.
+
+eq(T1@lset(X, A), T2@lset(Y, A), R) =>                             % 7d
+    log_d_vv("eq :: eq_7d"),
+
+    if T1.lhead().len() == 0 then   true   end,
+
+    XElem = T1.lhead().first(),
+    XSlice = slice(T1.lhead(), 2),
+
+    R1 = [$eq( A, lset([XElem],N) )],
+    R2 = [$eq( lset(XSlice,N), lset(Y, N) )],
+
+    R = R1 ++ R2.
+
+eq(T1@lset([X|Xs], A), T2@lset([Y|Ys], B), R), 
+        T1.is_lset(), T2.is_lset() ?=>                             % 8a
     log_d_vv("eq :: eq_8a"),
     eq(X, Y, R1),
     eq(A, B, R2),
     R = R1 ++ R2.
-eq(T1@lset([X|Xs], A), T2@lset([Y|Ys], B), R), T1.is_lset(), T2.is_lset() ?=>                      % 8b
+eq(T1@lset([X|Xs], A), T2@lset([Y|Ys], B), R), 
+        T1.is_lset(), T2.is_lset() ?=>                             % 8b
     log_d_vv("eq :: eq_8b"),
     eq(X, Y, R1),
     eq(T1, B, R2),
     R = R1 ++ R2.
-eq(T1@lset([X|Xs], A), T2@lset([Y|Ys], B), R), T1.is_lset(), T2.is_lset() ?=>                      % 8c
+eq(T1@lset([X|Xs], A), T2@lset([Y|Ys], B), R), 
+        T1.is_lset(), T2.is_lset() ?=>                             % 8c
     log_d_vv("eq :: eq_8c"),
     eq(X, Y, R1),
     eq(A, T2, R2),
     R = R1 ++ R2.
-eq(T1@lset([X|Xs], A), T2@lset([Y|Ys], B), R), T1.is_lset(), T2.is_lset() =>                       % 8d
+eq(T1@lset([X|Xs], A), T2@lset([Y|Ys], B), R), 
+        T1.is_lset(), T2.is_lset() =>                              % 8d
     log_d_vv("eq :: eq_8d"),
     eq(A, $lset([Y], N), R1),
     eq($lset([X], N), B, R2),
@@ -224,9 +204,6 @@ eq(T1, T2, R), struct(T1), struct(T2) =>                           % 9
         eq(X1, X2, RR),
         R := R ++ RR
     end.
-%eq(T1, T2, R) =>  % temp
-%    log_d_vv("eq :: eq_temp"),
-%    R = [], T1 = T2.
 
 
 % ****** inequality constraints
@@ -327,3 +304,13 @@ occur_check(X, Y) => membchk(X, vars(Y)).
 occur_check(X, Y, R) ?=> occur_check(X, Y), R = 1.
 occur_check(_X, _Y, R) => R = 0.
 is_occur_check(X, Y) = R => occur_check(X, Y, R).
+
+
+foreachnd_slice(List, Elem, Slice) => 
+    foreachnd_slice(List, Elem, Slice, 1, List.len()).
+
+foreachnd_slice(List, Elem, Slice, I, Ie), I <= Ie ?=>
+    [Elem|_] = slice(List, I, I),
+    Slice = slice(List, 1, I-1) ++ slice(List, I+1, Ie).
+foreachnd_slice(List, Elem, Slice, I, Ie), I <= Ie ?=>
+    foreachnd_slice(List, Elem, Slice, I + 1, Ie).
