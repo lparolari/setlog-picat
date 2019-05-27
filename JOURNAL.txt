@@ -1,8 +1,15 @@
+******************************************************************************
+******************************************************************************
+****************                                              ****************
 ****************             PICAT SETLOG JOURNAL             ****************
+****************                                              ****************
+******************************************************************************
+******************************************************************************
 
 Luca Parolari <luca.parolari23@gmail.com>
 
-This document, apart from headers, is intentionally in italian.
+This document, apart from headers, is intentionally in italian. The headers
+represents a summary of what were done in the specified date.
 
 
 ------------------------------------------------------------------------------
@@ -347,3 +354,17 @@ e risolti al giro dopo.
 (3) la rappresentazione insiemistica con lset va bene; da sperimentare.
 
 (4) il goal ultimo è l'implementazione di clp(set)
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                            23/24 May                                  -
+------------------------------------------------------------------------------
+- A proper-called CLI                                                        -
+------------------------------------------------------------------------------
+
+E' stata implementata una CLI degna di tale nome, che segua il principio di 
+"separation of concerns" tale per cui la CLI viene separata dal solver vero
+e proprio.
+

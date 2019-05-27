@@ -17,6 +17,7 @@ main =>
 %% init() is det
 
 init => 
+    log_mode([v,vv,vvv]),
     global(last_command_idx, 0), 
     global(last_commands, new_map()),
     global(last_args, new_map()), true.
@@ -43,7 +44,7 @@ introduce =>
 %  commands are read, their legality is checked and,
 %  if they are correct, they are executed.
 
-obeyCommands() =>
+obeyCommands() ?=>
     while(true)
         [Command | Arguments] = readCommandLine(),
         if membchk(Command, [copying,
@@ -52,7 +53,8 @@ obeyCommands() =>
                             quit,
                             info,
                             solve, 
-                            up]) then
+                            up, 
+                            log]) then
             if Command !== up then
                 push_last_command(Command, Arguments)
             end,
@@ -61,13 +63,7 @@ obeyCommands() =>
             unknownCommand(Command)
         end
     end.
-
-
-%% unknownCommand(Command) is det
-
-unknownCommand(Command) =>
-    println("Unknown command '" ++ Command.to_string ++ "': type 'help' for advice or 'quit' to exit").
-
+obeyCommands() => obeyCommands().
 
 %% doCommand(Command) is det
 
@@ -83,7 +79,7 @@ doCommand(Command) => doCommand(Command, _).
 %   with arguments Args.
 
 % Quit the system.
-doCommand(quit, _) =>  % TBD
+doCommand(quit, _) =>
     println("Bye!"),
     abort.
 
@@ -96,24 +92,56 @@ doCommand(copying, _) =>  % TBD
     println("Copying").
 
 % Show informations about the system.
-doCommand(info, _) =>  % TBD
+doCommand(info, _) =>
     println("Current log level: " ++ log_mode().to_string).  
 
 % Show the help message.
-doCommand(help, _) =>  % TBD
-    println("Help message").  
+doCommand(help, Args) =>  % TBD
+    if Args.len() == 0 then
+        println("Setlog provides you with the following commands:"), nl,
+        println("help      - the command you have just issued;"),
+        println("info      - display the current interpreter status;"),
+        println("up   <n>  - redo the last <n> command (leave empty for the last one);"),
+        println("log  <m>  - set the log mode to <m> (available log mode: " ++ get_log_modes().to_string ++ ");"),
+        println("solve <f> - solve the formula <f> with the solver;") 
+    elseif Args.first() == solve then
+        println("SYNOPSIS"),
+        println("\t{log} => TERM."), nl,
+        println("\tTERM ::= COMMAND | FORMULAS"), nl,
+        println("\tCOMMAND ::= halt | config | help"), nl,
+        println("\tFORMULAS ::= array(FORMULA, FORMULA...)"),
+        println("\tFORMULA ::= eq(TERM, TERM) | neq(TERM, TERM) | ..."), nl,
+        println("\tNote that array(...) is a handy name for [...]."), nl, 
+        println("DESCRIPTION"),
+        println("\tA short description")
+    end.
+
+% Manage log level. 
+doCommand(log, Args) =>  % TBD
+    if Args.len() != 1 then wrongArgNumber(log, 1), fail end,
+    parse_term(Args.first().to_string(), Term, _Vars),
+    if (membchk(Term, get_log_modes())) then
+        log_mode(Term)
+    else
+        wrongArgValues(log, mode, get_log_modes())
+    end.
 
 % Run the last issued executed command.
-doCommand(up, []) => [Command | Args] = get_last_command(), doCommand(Command, Args).
-doCommand(up, Arguments@[N|_]) => 
+doCommand(up, []) => 
+    [Command | Args] = get_last_command(), 
+    doCommand(Command, Args).
+doCommand(up, _Arguments@[N|_]) => 
     [Command | Args] = get_last_command(N.to_string().to_int()),
     doCommand(Command, Args).
 
 % Run the solver and solves the formula passed in the first argument. 
-doCommand(solve, Args) =>  % TBD
-    parse_term(Args.first().to_string(), Term, Vars),
-    top_level(Term),
-    true.  
+doCommand(solve, _) =>  % TBD
+    print("{log} => "), S = read_line(),
+    %writeln(S),
+    parse_term(S, Term, Vars),
+    println(Term),
+    top_level(Term, Vars),
+    true.
 
 % Run a commands that does nothing.
 doCommand(skip, _) => 
@@ -136,11 +164,11 @@ doCommand(skip, _) =>
 %     L = ['load', 'test/mergesort']
 
 readCommandLine() = CommandArgs =>
-    print("{log} => "),
+    print("log> "),
     Line := read_line(),
     Line := lstrip(Line),
-	Line := rstrip(Line),
-	Words = split(Line),
+    Line := rstrip(Line),
+    Words = split(Line),
     CommandArgs = [Word.to_atom() : Word in Words].
 
 
@@ -167,7 +195,42 @@ get_last_command(N) = CommandArgs, N >= 0 =>
     I = global(last_command_idx), CM = global(last_commands), AM = global(last_args),
     I := I - N - 1,
     if CM.has_key(I), AM.has_key(I) then
-        CommandArgs = [CM.get(I), AM.get(I)],
+        CommandArgs = [CM.get(I) | AM.get(I)]
     else
         CommandArgs = [skip | []]
     end.
+
+
+%% unknownCommand(Command) is det
+%
+% @param Command:atom The issued command.
+
+unknownCommand(Command) =>
+    println("Unknown command '" ++ Command.to_string ++ "': type 'help' for advice or 'quit' to exit").
+
+
+%% wrongArgNumber(Command, N) is det
+%
+% @param Command:atom The issued command.
+% @param N:int The required number of args.
+%
+% @desc Display an error message concerning number of args for command Command.
+
+wrongArgNumber(Command, N) =>
+    println("Wrong argument number for command '" ++ Command.to_string ++ "'."), 
+    if N > 1 then T = "args" else T = "arg" end,
+    println("This command requires " ++ N.to_string ++ " " ++ T.to_string ++ ".").
+
+
+%% wrongArgValues(Command, Arg, Choices) is det
+%
+% @param Command:atom The issued command.
+% @param Arg:atom The arg with wrong values.
+% @param Choices:list A (possibly empty) list of choices for parameters.
+%
+% @desc Display an error message concerning wrong values for arg Arg in command Command, and 
+%       shows choices Choices if not empty.
+
+wrongArgValues(Command, Arg, Choices) =>
+    println("Wrong argument value for command '" ++ Command.to_string ++ "' with arg '" ++ Arg.to_string ++ "'."), 
+    if Choices.len() > 0 then   println("Choose one of: " ++ Choices.to_string ++ ".")   end.

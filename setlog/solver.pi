@@ -21,14 +21,15 @@ import prompt.
 import log_h.
 import lset.
 
-top_level(Term) ?=>
+top_level(Term, Vars) ?=>
     log_d_v("setlog"),
     log_d_vv("setlog :: Term="++Term.to_string),
+    log_d_vv("setlog :: Vars="++Vars.to_string),
     solve(Term, Res),
     println("Result: " ++ Res.to_string),
     if anothersol() == 1 then   fail   end.
 
-top_level(_) =>
+top_level(_, _) =>
     println("no!").
 
 anothersol() = A => 
