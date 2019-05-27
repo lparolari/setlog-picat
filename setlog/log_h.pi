@@ -27,8 +27,18 @@ log_mode() = X =>
     end,
     X = global(log_mode).
 
+% some defaults log_mode.
+log_mode(none) => log_mode([none]).
+log_mode(v) => log_mode([v]).
+log_mode(vv) => log_mode([v, vv]).
+log_mode(vvv) => log_mode([v, vv, vvv]). 
+log_mode(all) => log_mode([v, vv, vvv]). 
+
+% set the gloval log_mode.
 log_mode(Value) =>
     global(log_mode, Value).
+
+get_log_modes() = L => L = [none, v, vv, vvv, all].
 
 % log none -> nessun log
 % log v    -> solo entrata nella funzione
