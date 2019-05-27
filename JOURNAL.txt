@@ -384,3 +384,17 @@ greedy, ma siano solo riscritte e passate al solver per essere sistemate
 alla passata successiva.
 Riscritte le regole per "in" con la nuova impl. di lset.
 
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                              27 May                                   -
+------------------------------------------------------------------------------
+- The union constraints                                                      -
+------------------------------------------------------------------------------
+
+Aggiornao il solver con alcuni commenti e minor fix.
+Tentata la riscrittura delle variabili ma non funziona mettendo la mappa 
+nelle globali, mistero...
+
+Aggiunte alcune union rules.

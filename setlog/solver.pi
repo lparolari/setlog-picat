@@ -87,6 +87,9 @@ rule(or(T1, T2), R) => or(T1, T2, R).
 rule(or(T), R) => or(T, R).
 rule(insl(X, S), R) => insl(X, S, R).
 rule(contains(S, X), R) => contains(S, X, R).
+rule(union(S1, S2, S3), R) => union(S1, S2, S3, R).
+% FIXME : add nin operator
+
 
 
 % ****** equality constraints
@@ -239,7 +242,7 @@ neq(T1, T2@lset(Y, T1), R),
     foreach(YElem in Y)
         RR := RR ++ [$neq(YElem, T1)] 
     end,
-    R = [$or(RR)]. % FIXME
+    R = [$or(RR)]. % FIXME what about the notin operator??
 
 neq(T1, T2, R), occur_check(T1, T2) =>                             % 4 
     log_d_vv("neq :: neq_4"),
@@ -301,6 +304,39 @@ contains(T2, T1, R), var(T2) =>                                    % 3
     log_d_vv("contains :: in_3"), 
     R = [ $eq(T2, lset(T1, _N)) ].
 
+
+
+% ****** union constraints
+
+union(S1, S2, S3, R), 
+        S1.is_lset(), S2.is_lset(), S3.is_lset(),   % queste le ho messe per non scrivere la testa della regola esplicita.
+        S2 == S2 =>                                                % 1
+    R = [$eq(S1, S3)].
+
+union(S1, S2, S3@lset([],not_a_value), R),
+        S1.is_lset(), S2.is_lset() =>                              % 2
+    R = [$eq(S1, S3), $eq(S2, S3)].
+
+union(S1@lset([],not_a_value), S2, V, R),
+        S2.is_lset() =>                                            % 3
+    R = [$eq(V, S2)].
+
+union(S1, S2@lset([],not_a_value), V, R),
+        S1.is_lset() =>                                            % 4
+    R = [$eq(V, S1)].
+
+union(S1@lset(X,A), S2, V, R),
+        S2.is_lset() =>                                            % 5
+    member(Xx, X),
+    R1 = [ $or(
+                [ $nin(Xx, S2), $union(N1, S2, N) ],
+                [ $eq(S2,$lset([Xx], N2)), $union(N1, N2, N) ]  % FIXME lset([Xx]) o lset([X]) ???
+            )],
+    R2 = [ 
+            $eq($lset([Xx], A), $lset([Xx], N1)), 
+            $eq(V, $lset([Xx], N))  
+        ],
+    R = R1 ++ R2.
 
 
 % ****** goal disjunction
