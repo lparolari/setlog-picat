@@ -72,7 +72,8 @@ rule(eq(T1,T2), R) => eq(T1, T2, R).
 rule(neq(T1, T2), R) => neq(T1, T2, R).
 rule(or(T1, T2), R) => or(T1, T2, R).
 rule(or(T), R) => or(T, R).
-rule(insl(T, X), R) => insl(T, X, R).
+rule(insl(X, S), R) => insl(X, S, R).
+rule(contains(S, X), R) => contains(S, X, R).
 
 
 % ****** equality constraints
@@ -269,26 +270,34 @@ neq(T1, T2, R) => % temp / DEFAULT??? FIXME
 
 % ****** membership constraints
 
-insl(_T, set([]), R) =>         % 1
-    log_d_vv("insl :: in_1"), 
-    R = [], 
+% an alias for contains(T2, T1).
+insl(T1, T2, R) => contains(T2, T1, R).
+
+contains(lset([], not_a_value), _T1, R) =>                         % 1
+    log_d_vv("contains :: in_1"),  
     false.
-insl(T, set([U | UR]), R) =>   % 2
-    log_d_vv("insl :: in_2"),
-    T1 = $eq(T, U),
-    T2 = $insl(T, $set([UR].flatten())),
-    or(T1, T2, R).
-insl(T, set(A), R) =>          % 3
-    log_d_vv("insl :: in_3"), 
-    A = [T|_X],  % non è un vincolo, giusto? Non serve restituirlo, basta riscrivere A (?)
-    R = [].
+
+contains(T2@lset(X,A), T1, R) =>                                   % 2
+    log_d_vv("contains :: in_2"),
+    [Xx|Xs] = X,
+    R = [ $or(  $eq(T1,Xx), $insl(T1,A)  ) ].
+
+contains(T2, T1, R), var(T2) =>                                    % 3
+    log_d_vv("contains :: in_3"), 
+    R = [ $eq(T2, lset(T1, _N)) ].
+
 
 
 % ****** goal disjunction
 
-%% or(T1, T2, R) is nondet
+%% or(T1, T2, -R) is nondet
 %
-% Try satisfying a binary disjunction goal.
+% @param T1:term  The fisrt term to satisfy.
+% @param T2:term  The second term to satisfy.
+% @param R:list  A (possibly empty) list of results.
+%
+% @ desc Try satisfying a binary disjunction goal.
+
 or(T1, _T2, R) ?=> 
     log_d_vv("or :: first"), 
     sat(T1, R).
@@ -296,9 +305,14 @@ or(_T1, T2, R) ?=>
     log_d_vv("or :: second"),
     sat(T2, R).
 
-%% or(T, R) is nondet
+
+%% or(L, -R) is nondet
 %
-% Try satisfying a list of disjunction goals.
+% @param L:list  A (possibly empty) list of goals.
+% @param R:list  A (possibly empty) list of results.
+%
+% @desc Try satisfying a N-th disjunction goal.
+
 or([], []) ?=>
     % nothing to do.
     log_d_vv("or/2 :: first").
@@ -327,6 +341,7 @@ occur_check(_X, _Y, R) => R = 0.
 is_occur_check(X, Y) = R => occur_check(X, Y, R).
 
 
+% TODO: comment me.
 foreachnd_slice(List, Elem, Slice) => 
     foreachnd_slice(List, Elem, Slice, 1, List.len()).
 

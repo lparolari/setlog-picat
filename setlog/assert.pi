@@ -10,5 +10,11 @@ assert_equal(A, Expected, Actual), Expected == Actual =>
 assert_equal(A, Expected, Actual) => 
     log_e("FAILED " ++ A.aname().to_string() ++ " - assert_equal(ex:" ++ Expected.to_string ++ ", ac:" ++ Actual.to_string ++ ")").
 
+% deprecated
 assert_fail_failed(A) => log_e("FAILED " ++ A.aname().to_string() ++ " - assert_fail").
+
+
 assert_fail(A) => log_i("SUCCESS " ++ A.aname().to_string() ++ " - assert_fail").
+
+fail(A) => log_e("FAILED " ++ A.aname().to_string()).
+success(A) => log_i("SUCCESS " ++ A.aname().to_string()).

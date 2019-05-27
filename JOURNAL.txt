@@ -361,10 +361,26 @@ e risolti al giro dopo.
 ------------------------------------------------------------------------------
 - 2019                            23/24 May                                  -
 ------------------------------------------------------------------------------
-- A proper-called CLI                                                        -
+- It's time of CLI                                                           -
 ------------------------------------------------------------------------------
 
 E' stata implementata una CLI degna di tale nome, che segua il principio di 
 "separation of concerns" tale per cui la CLI viene separata dal solver vero
 e proprio.
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                              26 May                                   -
+------------------------------------------------------------------------------
+- The end of eq/neq/in rules?                                                -
+------------------------------------------------------------------------------
+
+Implmentazione di tutte le regole dell'equality constraints, seguendo paro
+paro le regole di riscrittura (vari fix, soprattutto eq_7).
+Tutte le neq sono state riscritte di modo che non siano risolte in maniera 
+greedy, ma siano solo riscritte e passate al solver per essere sistemate 
+alla passata successiva.
+Riscritte le regole per "in" con la nuova impl. di lset.
 
