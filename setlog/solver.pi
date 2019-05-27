@@ -13,28 +13,39 @@
 %% module solver
 %
 % @author Luca Parolari <luca.parolari23@gmail.com>
-% @version 0.6.0
 
 module solver.
 
+import util.
 import prompt.
 import log_h.
 import lset.
+import global.
+
+
+%% top_level(Term, Vars) is nondet
+%
+% @param Term:term  A formula to solve.
+% @param Vars:list  A list of pairs Name=Var for variables in formula.
+%
+% @desc Start the main solver and find all the solutions.
 
 top_level(Term, Vars) ?=>
     log_d_v("setlog"),
     log_d_vv("setlog :: Term="++Term.to_string),
     log_d_vv("setlog :: Vars="++Vars.to_string),
+    global(var_names_map, Vars),
     solve(Term, Res),
-    println("Result: " ++ Res.to_string),
+    println("Result: " ++ Res.to_human().to_string),
     if anothersol() == 1 then   fail   end.
 
 top_level(_, _) =>
     println("no!").
 
-anothersol() = A => 
-    nl,
-    A = confirm("Another solution?").
+%% solve(Formulas, FormulaRes) is det
+%
+% @param Formulas:list  A list of goals to solve in conjunction.
+% @param FormulaRes:list  A list of solved contraints.
 
 solve(Formulas, FormulaRes) =>
     log_d_v("solve/2"),
@@ -56,7 +67,9 @@ solve(Formulas, FormulaRes) =>
         log_d_vvv("solve/2 :: FOld equal FNew"),
         FormulaRes = FormulasNew
     end.
-    
+
+
+%% sat(F1, FR) is det
 
 sat(F1, FR), F1 == [] => 
     log_d_vv("sat/2 :: empty"),
@@ -208,6 +221,7 @@ eq(T1, T2, R), struct(T1), struct(T2) =>                           % 9
     end.
 
 
+
 % ****** inequality constraints
 
 neq(T1, T2, _R), T1 == T2 =>                                       % 1
@@ -268,6 +282,7 @@ neq(T1, T2, R) => % temp / DEFAULT??? FIXME
     R = [$neq(T1, T2)].
 
 
+
 % ****** membership constraints
 
 % an alias for contains(T2, T1).
@@ -279,7 +294,7 @@ contains(lset([], not_a_value), _T1, R) =>                         % 1
 
 contains(T2@lset(X,A), T1, R) =>                                   % 2
     log_d_vv("contains :: in_2"),
-    [Xx|Xs] = X,
+    member(Xx, X),
     R = [ $or(  $eq(T1,Xx), $insl(T1,A)  ) ].
 
 contains(T2, T1, R), var(T2) =>                                    % 3
@@ -329,10 +344,41 @@ or([_T|Tr], R) ?=>
 % *********************************************************
 % aux predicates 
 
+
+%% anothersol() = A
+%
+% @return 1 whether user wants another solution, 0 otherwise.
+
+anothersol() = A => 
+        nl,
+        A = confirm("Another solution?").
+
+
+%% to_human(Term) = ResHuma
+%
+% @param Term:term  A term in Picat representation.
+%
+% @return A term in human representation.
+
+to_human(Term) = ResHuman =>
+    log_d_v("to_human/1"),
+    Vars = global(var_names_map),  % FIXME : internal var names changes when retrieved, why??? Vars setted in top_level/2
+    log_d_vvv("to_human/1 :: Vars=" ++ Vars.to_string),
+    ResHuman = Term,
+    foreach (X in Vars)
+        NameHuman = NameInternal = X,
+        log_d_vvv("to_human/1 :: NameHuman=" ++ NameHuman.to_string ++ ", NameInternal=" ++ NameInternal.to_string),
+        ResHuman := replace(ResHuman, NameInternal, NameHuman),
+    end.
+
+
 %% occur_check(+X, +Y) is det
-% The predicate is true whether the variable X is a member of vars(Y).
-% X: the variable to find.
-% Y: the lookup term.
+%
+% @param X  the variable to find.
+% @param Y  the lookup term.
+% 
+% @desc The predicate is true whether the variable X is a member of vars(Y).
+
 occur_check(X, Y) => membchk(X, vars(Y)).
 
 % R is the boolean result used for the function is_occur_check.
