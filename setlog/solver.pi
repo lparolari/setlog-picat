@@ -209,40 +209,60 @@ eq(T1, T2, R), struct(T1), struct(T2) =>                           % 9
 
 % ****** inequality constraints
 
-neq(T1, T2, _R), T1 == T2 =>                                        % 1
+neq(T1, T2, _R), T1 == T2 =>                                       % 1
     log_d_vv("neq :: neq_1"),
-    fail.
-neq(T1, T2, R), nonvar(T1), var(T2) =>                             % 2
+    fail.  %intentionally fail.
+
+neq(T1, T2, R), nonvar(T1) =>                                      % 2
     log_d_vv("neq :: neq_2"),
-    neq(T2, T1, R).
-% 3
+    R = [$neq(T2, T1)].
+
+neq(T1, T2@lset(Y, T1), R),
+        not occur_check(T1, Y) =>                                  % 3
+    log_d_vv("neq :: neq_3"),
+    RR = [],
+    foreach(YElem in Y)
+        RR := RR ++ [$neq(YElem, T1)] 
+    end,
+    R = [$or(RR)]. % FIXME
+
 neq(T1, T2, R), occur_check(T1, T2) =>                             % 4 
+    log_d_vv("neq :: neq_4"),
     R = [].
-neq(set([X|A]), set([Y|B]), R) ?=>                                 % 5a
+
+neq(T1@lset(X,A), T2@lset(Y,B), R),
+        X.len() == 1, Y.len() == 1 ?=>                             % 5a
     log_d_vv("neq :: neq_5a"),
-    insl(N, $set([X|A]), R1),
-    not insl(N, $set([Y|B]), R2),
-    R = R1 ++ R2.
-neq(set([X|A]), set([Y|B]), R) ?=>                                 % 5b
+    R = [$insl(N, $lset(X,A), R1), $nin(N, $lset(Y, B))].
+
+neq(T1@lset(X,A), T2@lset(Y,B), R),
+        X.len() == 1, Y.len() == 1 ?=>                             % 5b
     log_d_vv("neq :: neq_5b"),
-    not insl(N, $set([X|A]), R1),
-    insl(N, $set([Y|B]), R2),
-    R = R1 ++ R2.
-neq(T1, T2, R), struct(T1), struct(T2), name(T1) !== name(T2) =>   % 6
-    log_d_vv("neq :: neq_6"),
+    R = [$nin(N, $lset(X,A), R1), $insl(N, $lset(Y, B))].
+
+neq(T1, T2, R), 
+        struct(T1), struct(T2), 
+        name(T1) !== name(T2) =>                                   % 6a
+    log_d_vv("neq :: neq_6a"),
     R = [].
-neq(T1, T2, R), struct(T1), struct(T2), name(T1) == name(T2) =>    % 7
+
+neq(T1, T2, R), 
+        struct(T1), struct(T2),
+        arity(T1) !== arity(T2) =>                                 % 6b
+    log_d_vv("neq :: neq_6b"),
+    R = [].
+
+neq(T1, T2, R), 
+        struct(T1), struct(T2) =>                                  % 7
     log_d_vv("neq :: neq_7"),
-    T1.arity() == T2.arity(),
-    X = [],
-    println(X),
+    RR = [],
     foreach (I in 1..T1.arity())
         X1 = T1[I], X2 = T2[I],
-        X := X ++ [$neq(X1, X2)]
+        RR := RR ++ [$neq(X1, X2)]
     end,
-    writeln(X),
-    or(X, R).
-neq(T1, T2, R) => % temp
+    R = [$or(RR)].
+
+neq(T1, T2, R) => % temp / DEFAULT??? FIXME
     log_d_vv("neq :: neq_temp"),
     R = [$neq(T1, T2)].
 
