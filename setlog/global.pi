@@ -8,23 +8,56 @@
 
 module global.
 
+
+
+%% get_global(+Key) = Value
+%
+% @desc Get variable with name Key and return it's value in Value.
+get_global(Key) = Value =>
+    G = get_map(),
+    Value = G.get(Key).
+
 %% global(+Key) = Value
 %
-% Get variable with name Key and return it's value in Value.
+% @desc Get variable with name Key and return it's value in Value.
+% @deprecated
 global(Key) = Value =>
-    G = get_heap_map(),
+    G = get_map(),
     Value = G.get(Key).
 
 %% global(+Key, +Value)
 %
-% Set a variable with name Key and value Value.
-global(Key, Value) =>
-    G = get_heap_map(),
+% @desc Set a variable with name Key and value Value.
+set_global(Key, Value) =>
+    G = get_map(),
     G.put(Key, Value).
+
+%% global(+Key, +Value)
+%
+% @desc Set a variable with name Key and value Value.
+% @deprecated
+global(Key, Value) =>
+    G = get_map(),
+    G.put(Key, Value).
+
+
+%% has_global(+Key) is det
+%
+% @desc The predicate fails whether the key Key is not in globals, suceeds otherwise.
+
+is_global(Key) => has_key(get_map(), Key).
+
 
 %% has_global(+Key) = Res
 %
-% Return 1 if variable with name Key exists, 0 otherwise.
+% @return 1 whether key Key exists in globals, 0 otherwise.
+
 has_global(Key) = Res => has_global(Key, Res).
-has_global(Key, Res), has_key(get_heap_map(), Key) => Res = 1.
-has_global(Key, Res) => Res = 0.
+
+% helpers for transforming a predicate into a function.
+has_global(Key, Res), is_global(Key) => Res = 1.
+has_global(_, Res) => Res = 0.
+
+
+private 
+get_map() = M => M = get_global_map().
