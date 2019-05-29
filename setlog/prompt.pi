@@ -6,18 +6,19 @@
 module prompt.
 
 import util.
+import global.
 
-%% prompt(+Q) = A
-%
-% Prompts a user for input.
-prompt(Q) = A =>
-    %TBD
+% TODO
+prompt(_Q) = _A =>
+    % TODO
     throw not_implemented_exception.
 
-%% confirm(+Q) = A
+
+%% confirm(Q) = A
 %
-% Prompts for confirmation (yes/no question) and return the answer
-% as a boolean value (0/1).
+% @param Q:term  A term to be printed as a question
+% @desc Prompts for confirmation (yes/no question) and return the answer as a boolean value (0/1).
+
 confirm(Q) = A => 
     print(Q.to_string ++ " (y/n): "),
     R := read_line().strip(),
@@ -26,3 +27,23 @@ confirm(Q) = A =>
     else 
         A = 0
     end.
+
+%% echo(P) is det
+%
+% @desc Print the phrase P to the standard output if echo is enabled (i.e., the global prompt_echo_enabled is true).
+
+echo(P), 
+        is_global(prompt_echo_enabled), 
+        get_global(prompt_echo_enabled) == true  => 
+    println(P.to_string).
+echo(_) => true.
+
+
+%% set_echo_enabled(B)
+%
+% @param B:bool  `true` to enable echo, `false` otherwise.
+
+set_echo_enabled(B) =>
+    set_global(prompt_echo_enabled, B).
+get_echo_enabled() = B =>
+    B = get_global(prompt_echo_enabled).
