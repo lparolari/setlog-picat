@@ -8,6 +8,7 @@ import util.
 import solver.
 import global.
 import log_h.
+import prompt.
 
 go => main.
 main =>
@@ -28,9 +29,9 @@ init =>
 introduce =>
     println("This is the pure implementation of {log} in Picat."),
     println("Copyright (C) 2019 Luca Parolari <luca.parolari23@gmail.com>"),
-    println("this program is free software, covered by the !!!TBD LICENSE!!! GNU General Public License, and you are welcome to change it and/or distribute copies of it under certain conditions."),
+    println("  This program is free software, covered by the !!!TODO!!! GNU General Public License, and you are welcome to change it and/or distribute copies of it under certain conditions."),
+    println("  There is ABSOLUTELY NO WARRANTY for this program."),
     println("Type 'copying' to see the conditions"),
-    println("There is ABSOLUTELY NO WARRANTY for this program."),
     println("Type 'warranty' for details."),
     println("Type 'help' for advice, 'quit' to exit."),
     nl, println("Default settings follows."),
@@ -93,7 +94,9 @@ doCommand(copying, _) =>  % TBD
 
 % Show informations about the system.
 doCommand(info, _) =>
-    println("Current log level: " ++ log_mode().to_string).  
+    println("Current log level: " ++ log_mode().to_string), 
+    println("    Echo enabled : " ++ get_echo_enabled().to_string),
+    true.
 
 % Show the help message.
 doCommand(help, Args) =>  % TBD
@@ -139,7 +142,6 @@ doCommand(solve, _) =>  % TBD
     print("{log} => "), S = read_line(),
     %writeln(S),
     parse_term(S, Term, Vars),
-    println(Term),
     top_level(Term, Vars),
     true.
 

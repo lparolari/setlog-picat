@@ -47,7 +47,7 @@ cd setlog-picat-draft
 
 ## ▶️ Usage
 
-```bash
+```
 $ picat               # start picat interpreter.
 $ Picat> cl(setlog).  # compile and load the setlog module into picat
 $ Picat> setlog.      # start setlog intepreter.
@@ -72,4 +72,4 @@ Luca Parolari <<luca.parolari23@gmail.com>>
 
 ## 🎓 License
 
-This project is licensed under MIT license. See [LICENSE.txt](license.txt) file for details.
+This project is licensed under MIT license. See [LICENSE.txt](LICENSE.txt) file for details.
