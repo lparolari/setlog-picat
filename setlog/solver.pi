@@ -36,7 +36,7 @@ top_level(Term, Vars) ?=>
     log_d_vv("setlog :: Vars="++Vars.to_string),
     global(var_names_map, Vars),
     solve(Term, Res),
-    println("Result: " ++ Res.to_human().to_string),
+    println("Solution found: " ++ Res.to_human(Vars).to_string),
     if anothersol() == 1 then   fail   end.
 
 top_level(_, _) =>
@@ -390,15 +390,17 @@ anothersol() = A =>
         A = confirm("Another solution?").
 
 
-%% to_human(Term) = ResHuma
+%% to_human(Term, Vars) = ResHuma
 %
+% @param Vars:map   A map containing Name=var.
 % @param Term:term  A term in Picat representation.
 %
 % @return A term in human representation.
 
 to_human(Term) = ResHuman =>
+    ResHuman = to_human(Term, global(var_names_map)).
+to_human(Term, Vars) = ResHuman =>
     log_d_v("to_human/1"),
-    Vars = global(var_names_map),  % FIXME : internal var names changes when retrieved, why??? Vars setted in top_level/2
     log_d_vvv("to_human/1 :: Vars=" ++ Vars.to_string),
     ResHuman = Term,
     foreach (X in Vars)
