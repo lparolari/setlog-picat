@@ -46,4 +46,8 @@ echo(_) => true.
 set_echo_enabled(B) =>
     set_global(prompt_echo_enabled, B).
 get_echo_enabled() = B =>
-    B = get_global(prompt_echo_enabled).
+    if is_global(prompt_echo_enabled) then 
+        B = get_global(prompt_echo_enabled)
+    else
+        B = true
+    end.
