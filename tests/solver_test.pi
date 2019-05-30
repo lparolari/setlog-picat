@@ -6,6 +6,7 @@ main =>
     all().
 
 all => 
+    log_mode(none),
     equality_tests(),
     inequality_tests(),
     membership_tests().
@@ -138,7 +139,21 @@ setlog_eq8_1_test =>
     F = [$eq( lset([b],X), lset([a],Y) )],
     solve(F, FF),
     A.assert_equal([], FF).
+setlog_eq8_1_test ?=> A = new_assert("setlog_eq8_1_test"), A.fail().
 
+setlog_eq8_2_test ?=>
+        A = new_assert("setlog_eq8_2_test"),
+        F = [$eq( lset([b,c],X), lset([a,c],Y) )],
+        solve(F, FF),
+        A.assert_equal([], FF).
+setlog_eq8_2_test => A = new_assert("setlog_eq8_2_test"), A.fail().
+
+setlog_eq8_3_test ?=>
+        A = new_assert("setlog_eq8_3_test"),
+        F = [$eq( lset([b,1],X), lset([a,2],Y) )],
+        solve(F, FF),
+        A.assert_equal([], FF).
+setlog_eq8_3_test => A = new_assert("setlog_eq8_3_test"), A.fail().
 
 
 % *********************************************************
