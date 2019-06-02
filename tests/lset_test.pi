@@ -1,0 +1,32 @@
+module lset_test.
+
+%import lset.
+
+main => 
+    all().
+
+all =>
+    test_rest_equal_not_a_val,
+    test_rest_equal_numeral,
+    test_rest_equal_variable.
+
+test_rest_equal_not_a_val() ?=>
+    X = new_lset([1,2,3]),
+    Y = new_lset([4,5,6]),
+    X.is_rest_equal(Y),
+    println("Failed test_rest_equal_not_a_val").
+test_rest_equal_not_a_val() => println("Success test_rest_equal_not_a_val").
+
+test_rest_equal_numeral() ?=>
+    X = new_lset([1,2,3], 2),
+    Y = new_lset([4,5,6], 2),
+    X.is_rest_equal(Y),
+    println("Success test_rest_equal_numeral").
+test_rest_equal_numeral() => println("Failed test_rest_equal_numeral").
+
+test_rest_equal_variable() ?=>
+    X = new_lset([1,2,3], T),
+    Y = new_lset([4,5,6], T),
+    X.is_rest_equal(Y),
+    println("Success test_rest_equal_variable").
+test_rest_equal_variable() => println("Failed test_rest_equal_variable").

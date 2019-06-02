@@ -1,5 +1,8 @@
 %% module lset
 %
+% @desc This module provides a representation for lsets used in solver and offers
+%       some utilities methods for lsets management.
+%
 % @author Luca Parolari <luca.parolari23@gmail.com>
 % @version 0.1.0
 
@@ -7,47 +10,55 @@ module lset.
 
 import log_h.
 
-% L is always a list of set's element.
-% R is a variable representing the rest of the set, if the set hasn't a rest R will be not_a_value.
-new_lset() = S     => H = [], S = new_lset(H).
-new_lset(H) = S    => R = not_a_value, S = new_lset(H, R).
-new_lset(H, R) = S => S = $lset(H, R).
-% a sort of copy constructor.
-% new_lset(Y) = S, Y.is_lset() => S = new_lset(Y.lhead(), Y.lrest()).  % FIXME
+new_lset(ListRest) = Lset => 
+    Lset = ListRest.
+new_lset(Head, Rest) = Lset => 
+    to_lset_list(Head, Rest, List),
+    Lset = List.
 
-lhead(S) = H => H = S[1].
-lrest(S) = R => R = S[2].
-
-is_lset(S) => S.struct(), S.name() == lset.
-
-is_rest_equal(S1, S2) =>
-    S1.lrest() == S2.lrest(),
-    S1.lrest() !== not_a_value,
-    S2.lrest() !== not_a_value.
+private
+to_lset_list([], Rest, List) => 
+    List = Rest.
+to_lset_list([E|Es], Rest, List) => 
+    L = E,
+    to_lset_list(Es, Rest, Ls),
+    List = [L|Ls].
 
 
-do_tests =>
-    test_rest_equal_not_a_val,
-    test_rest_equal_numeral,
-    test_rest_equal_variable.
+%% lset_rest(lset(X)) = R
+%
+% @param lset(X)  The lset from which take the rest.
+% @return  The rest (with setlog meaning) R from lset(X).
 
-test_rest_equal_not_a_val() ?=>
-    X = new_lset([1,2,3]),
-    Y = new_lset([4,5,6]),
-    X.is_rest_equal(Y),
-    println("Failed test_rest_equal_not_a_val").
-test_rest_equal_not_a_val() => println("Success test_rest_equal_not_a_val").
+lset_rest(X) = R => lset_rest(X, R).
 
-test_rest_equal_numeral() ?=>
-    X = new_lset([1,2,3], 2),
-    Y = new_lset([4,5,6], 2),
-    X.is_rest_equal(Y),
-    println("Success test_rest_equal_numeral").
-test_rest_equal_numeral() => println("Failed test_rest_equal_numeral").
+private
+lset_rest([], R) => R = [].
+lset_rest([X|Xs], R) => lset_rest(Xs, R).
+lset_rest(X, R) => R = X.
 
-test_rest_equal_variable() ?=>
-    X = new_lset([1,2,3], T),
-    Y = new_lset([4,5,6], T),
-    X.is_rest_equal(Y),
-    println("Success test_rest_equal_variable").
-test_rest_equal_variable() => println("Failed test_rest_equal_variable").
+
+%% lset_head(lset(X)) = R
+%
+% @param lset(X)  The lset from which take the head.
+% @return  The head (with setlog meaning) R from lset(X).
+
+lset_head(X) = R => lset_head(X, R).
+
+private
+lset_head([], R) => R = [].
+lset_head([X|Xs], R) => lset_head(Xs, RR), R = [X] ++ RR.
+lset_head(X, R) => R = [].
+
+
+%% is_lset(S)
+%
+% @desc This predicate is true if S is an lset, false otherwise.
+
+is_lset(S) => list(S).
+
+
+%is_rest_equal(S1, S2) =>
+%    S1.lrest() == S2.lrest(),
+%    S1.lrest() !== not_a_value,
+%    S2.lrest() !== not_a_value.

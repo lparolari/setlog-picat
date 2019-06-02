@@ -142,7 +142,10 @@ doCommand(solve, _) =>  % TBD
     print("{log} => "), S = read_line(),
     %writeln(S),
     parse_term(S, Term, Vars),
-    top_level(Term, Vars),
+    Map = new_map(),
+    Map.put(vars_map, Vars),
+    Map.put(terms_map, Term),
+    top_level(Term, Map),
     true.
 
 % Run a commands that does nothing.

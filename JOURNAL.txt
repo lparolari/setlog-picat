@@ -398,3 +398,70 @@ Tentata la riscrittura delle variabili ma non funziona mettendo la mappa
 nelle globali, mistero...
 
 Aggiunte alcune union rules.
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                              29 May                                   -
+------------------------------------------------------------------------------
+- The "union" meeting                                                        -
+------------------------------------------------------------------------------
+
+Domande:
+ - come implemento il notin?
+ Vedere documento capitolo 7.
+ - nelle regole della union, {t u A}, t è un termine o è l'insieme dei 
+termini?
+ E' un singolo termine, la ricorsione va effettuata su tutti i termini!
+
+E' emerso che mostrare i risultati "nice" si fa solo alla fine, non anche 
+durante la traccia parziale. Questo però potrebbe essere fatto rifacendo il
+parsing della stringa e unificando quello che ho letto con le variabili 
+calcolate.
+
+Provare ad introdurre delle regole "side" che permettano l'espansione del
+solver sfruttando le altre regole.
+
+Introdurre un "constraint not found" se la rule fallisce.
+
+Altri appunti:
+- l'inversione in neq `t != x --> x != t`  va in ciclo se si specifica 
+solamente che t deve essere nonvar, perché se le gira e anche l'altro è 
+nonvar continua all'infinito.
+Soluzione: nonvar(T1), var(T2)
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                              30 May                                   -
+------------------------------------------------------------------------------
+- Verification and check up                                                  -
+------------------------------------------------------------------------------
+
+Domande: 
+ - cosa succede nella eq7 se l'insieme ha zero elementi e solo il resto?
+ Questo caso è intercettato da regole precedenti.
+
+ Vedere file test8.pi in setlog-temp, implementare tutto così.
+ Cambiare implementazione ad lset!!
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+- 2019                             O2 June                                   -
+------------------------------------------------------------------------------
+- New Lset implementation made it works!!                                    -
+------------------------------------------------------------------------------
+
+Modificata la rappresentazione interna di lset con l'utilizzo delle liste
+non chiuse: le eq constraints funzionano:
+Esempio
+ - [eq([1,2,3|X],[4,5,6|X])]
+    Vars: (map)[X = [1,2,3,4,5,6|_171a0]]
+    Constraints: []
+ - [eq([1,X],[1,Y])]
+    Vars: (map)[Y = _7458,X = _7458]
+    Constraints: []

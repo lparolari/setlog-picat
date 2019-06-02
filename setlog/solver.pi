@@ -26,17 +26,18 @@ import global.
 %% top_level(Term, Vars) is nondet
 %
 % @param Term:term  A formula to solve.
-% @param Vars:list  A list of pairs Name=Var for variables in formula.
+% @param TODO : redo this
 %
 % @desc Start the main solver and find all the solutions.
 
-top_level(Term, Vars) ?=>
+top_level(Term, Map) ?=>
     log_d_v("setlog"),
     log_d_vv("setlog :: Term="++Term.to_string),
-    log_d_vv("setlog :: Vars="++Vars.to_string),
+    log_d_vv("setlog :: Map="++Map.to_string),
     global(var_names_map, Vars),
     solve(Term, Res),
-    println("Solution found: " ++ Res.to_human(Vars).to_string),
+    println("Vars: " ++ Map.get(vars_map).to_string),
+    println("Constraints: " ++ Res.to_human(Vars).to_string),
     if anothersol() == 1 then   fail   end.
 
 top_level(_, _) =>
@@ -88,140 +89,141 @@ rule(or(T), R) => or(T, R).
 rule(insl(X, S), R) => insl(X, S, R).
 rule(contains(S, X), R) => contains(S, X, R).
 rule(union(S1, S2, S3), R) => union(S1, S2, S3, R).
+% FIXME : add "not found" constraint with custom error message.
 % FIXME : add nin operator
 
 
 
 % ****** equality constraints
 
-%eq(T1, T2, R) ?=>
-%    log_d_vvv("eq :: eq_DEBUG : T1=" ++ T1.to_string ++ ", T2=" ++ T2.to_string),
-%    fail.
-
-eq(T1, T2, R), T1 == T2 =>                                         % 1
-    log_d_vv("eq :: eq_1"),
+eq(T1, T2, R),  T1 == T2 =>                                        % 1
+    log_d_v("eq :: eq_1"),
     R = [].
 
 eq(T1, T2, R), nonvar(T1), var(T2) =>                              % 2
-    log_d_vv("eq :: eq_2"),
+    log_d_v("eq :: eq_2"),
     eq(T2, T1, R).
 
-eq(T1, T2, R), var(T1), T2.is_lset(),
-               not occur_check(T1, T2.lhead()),  % SOUNDNESS?
-               T1 == T2.lrest() =>                                 % 3
-    log_d_vv("eq :: eq_3"),
-    eq(T1, new_lset(T2.lhead(), _N), R).
+eq(T1, T2, R), 
+        var(T1), T2.is_lset(),
+	    not occur_check(T1, T2.lset_head()),
+        T1 == T2.lset_rest() =>                                    % 3
+    log_d_v("eq :: eq_3"),
+    YSetNew = new_lset(T2.lset_head(),_N),
+    eq(T1, YSetNew, R).
 
-eq(T1, T2, _R), occur_check(T1, T2) =>                             % 4
-    log_d_vv("eq :: eq_4"),
-    fail.  % intentionally fail.
+eq(T1, T2, _R), 
+        var(T1),
+        occur_check(T1, T2) =>                                     % 4
+    log_d_v("eq :: eq_4"),
+    fail.  % sic.
 
-eq(T1, T2, R), var(T1) =>                                          % 5
-    log_d_vv("eq :: eq_5"),
+eq(T1, T2, R), 
+        var(T1) =>                                                 % 5
+    log_d_v("eq :: eq_5"),
     R = [], T1 = T2.
 
-eq(T1, T2, _R), struct(T1), struct(T2), 
-                T1.name() !== T2.name() =>                         % 6
-    log_d_vv("eq :: eq_6"),
-    fail.  % intentionally fail.
+eq(T1, T2, _R), 
+        struct(T1), struct(T2), 
+        T1.name() !== T2.name() =>                                 % 6
+    log_d_v("eq :: eq_6"),
+    fail.  % sic.
 
-eq(T1@lset(X, A), T2@lset(Y, A), R) =>                             % 7a
-    log_d_vv("eq :: eq_7a"),
+eq(T1@[X|Xs], T2, R), 
+        T1.is_lset(), T2.is_lset(),
+        T1.lset_rest() == T2.lset_rest() ?=>                       % 7a
+    log_d_v("eq :: eq_7a"),
 
-    if T1.lhead().len() == 0 then   true   end,
+    YH = T2.lset_head(),                   % head of T2.
+    foreachnd_slice(YH, YElem, YSlice),    % get the j-th element nondet.
+    YRest = T2.lset_rest(),                % rest of T2.
+    YSetSliced = new_lset(YSlice, YRest),  % build T2 without j-th elem.
 
-    XElem = T1.lhead().first(),
-    XSlice = slice(T1.lhead(), 2),
-    foreachnd_slice(Y, YElem, YSlice),
-    
-    log_d_vvv("eq:: eq_7 : XElem=" ++ XElem.to_string ++ ", YElem=" ++ YElem.to_string),
-    R1 = [$eq(XElem, YElem)],
-    log_d_vvv("eq:: eq_7 : XSlice=" ++ YSlice.to_string ++ ", YSlice=" ++ XSlice.to_string),
-    R2 = [$eq( $lset(XSlice, A), $lset(YSlice, A))],
-
-    R = R1 ++ R2.
-
-eq(T1@lset(X, A), T2@lset(Y, A), R) =>                             % 7b
-    log_d_vv("eq :: eq_7b"),
-
-    if T1.lhead().len() == 0 then   true   end,
-
-    XElem = T1.lhead().first(),
-    XSlice = X,  % no slice for X.
-    foreachnd_slice(Y, YElem, YSlice),
-    
-    log_d_vvv("eq:: eq_7 : XElem=" ++ XElem.to_string ++ ", YElem=" ++ YElem.to_string),
-    R1 = [$eq(XElem, YElem)],
-    log_d_vvv("eq:: eq_7 : XSlice=" ++ YSlice.to_string ++ ", YSlice=" ++ XSlice.to_string),
-    R2 = [$eq( $lset(XSlice, A), $lset(YSlice, A))],
+    R1 = [ $eq(X, YElem) ],
+    R2 = [ $eq(Xs, YSetSliced) ],
 
     R = R1 ++ R2.
 
-eq(T1@lset(X, A), T2@lset(Y, A), R) =>                             % 7c
-    log_d_vv("eq :: eq_7c"),
+eq(T1@[X|_], T2, R), 
+        T1.is_lset(), T2.is_lset(),
+        T1.lset_rest() == T2.lset_rest() ?=>                       % 7b
+    log_d_v("eq :: eq_7b"),
 
-    if T1.lhead().len() == 0 then   true   end,
+    YH = T2.lset_head(),                   % head of T2.
+    foreachnd_slice(YH, YElem, YSlice),   % get the j-th element nondet.
+    YRest = T2.lset_rest(),                % rest of T2.
+    YSetSliced = new_lset(YSlice, YRest),  % build T2 without j-th elem.
 
-    XElem = T1.lhead().first(),
-    XSlice = slice(T1.lhead(), 2),
-    YSlice = Y,  % no slice for Y.
-    foreachnd_slice(Y, YElem, _),
-    
-    log_d_vvv("eq:: eq_7 : XElem=" ++ XElem.to_string ++ ", YElem=" ++ YElem.to_string),
-    R1 = [$eq(XElem, YElem)],
-    log_d_vvv("eq:: eq_7 : XSlice=" ++ YSlice.to_string ++ ", YSlice=" ++ XSlice.to_string),
-    R2 = [$eq( $lset(XSlice, A), $lset(YSlice, A))],
+    R1 = [ $eq(X, YElem) ],
+    R2 = [ $eq(T1, YSetSliced) ],
 
     R = R1 ++ R2.
 
-eq(T1@lset(X, A), T2@lset(Y, A), R) =>                             % 7d
-    log_d_vv("eq :: eq_7d"),
+eq(T1@[X|Xs], T2, R),
+        T1.is_lset(), T2.is_lset(),
+        T1.lset_rest() == T2.lset_rest() ?=>                       % 7c
+    log_d_v("eq :: eq_7c"),
 
-    if T1.lhead().len() == 0 then   true   end,
+    % no slice for T2, only Y elem.
+    YH = lset_head(T2),              % head of T2.
+    foreachnd_slice(YH, YElem, _),   % get the j-th element nondet.
 
-    XElem = T1.lhead().first(),
-    XSlice = slice(T1.lhead(), 2),
-
-    R1 = [$eq( A, lset([XElem],N) )],
-    R2 = [$eq( lset(XSlice,N), lset(Y, N) )],
+    R1 = [ $eq(X, YElem) ],
+    R2 = [ $eq(Xs, T2) ],
 
     R = R1 ++ R2.
 
-eq(T1@lset([X|Xs], A), T2@lset([Y|Ys], B), R), 
+eq(T1@[X|Xs], T2, R),
+        T1.is_lset(), T2.is_lset(),
+        T1.lset_rest() == T2.lset_rest() =>                        % 7d
+    log_d_v("eq :: eq_7d"),
+
+    XRest = lset_rest(T1),
+
+    XHeadSlice = lset_head(Xs),
+    XSetNew = new_lset(XHeadSlice, N),
+
+    YHead = T2.lset_head(),
+    YSetNew = new_lset(YHead, N),
+
+    R1 = [ $eq(XRest, [X|N]) ],
+    R2 = [ $eq(XSetNew, YSetNew) ],
+
+    R = R1 ++ R2.
+
+eq(T1@[X|Xs], T2@[Y|Ys], R),
         T1.is_lset(), T2.is_lset() ?=>                             % 8a
-    log_d_vv("eq :: eq_8a"),
-    eq(X, Y, R1),
-    eq(A, B, R2),
-    R = R1 ++ R2.
-eq(T1@lset([X|Xs], A), T2@lset([Y|Ys], B), R), 
-        T1.is_lset(), T2.is_lset() ?=>                             % 8b
-    log_d_vv("eq :: eq_8b"),
-    eq(X, Y, R1),
-    eq(T1, B, R2),
-    R = R1 ++ R2.
-eq(T1@lset([X|Xs], A), T2@lset([Y|Ys], B), R), 
-        T1.is_lset(), T2.is_lset() ?=>                             % 8c
-    log_d_vv("eq :: eq_8c"),
-    eq(X, Y, R1),
-    eq(A, T2, R2),
-    R = R1 ++ R2.
-eq(T1@lset([X|Xs], A), T2@lset([Y|Ys], B), R), 
-        T1.is_lset(), T2.is_lset() =>                              % 8d
-    log_d_vv("eq :: eq_8d"),
-    eq(A, $lset([Y], N), R1),
-    eq($lset([X], N), B, R2),
-    R = R1 ++ R2.
+    log_d_v("eq :: eq_8a"),
+    R = [ $eq(X,Y), $eq(Xs, Ys) ].
 
-eq(T1, T2, R), struct(T1), struct(T2) =>                           % 9
-    log_d_vv("eq :: eq_9"),
-    R = [],
-    T1.name() == T2.name(),  % redundant check.
-    T1.arity() == T2.arity(),
-    foreach (I1 in 1..T1.arity())
-        X1 := T1[I1], X2 := T2[I1],
-        eq(X1, X2, RR),
-        R := R ++ RR
-    end.
+eq(T1@[X|_], T2@[Y|Ys], R),
+        T1.is_lset(), T2.is_lset() ?=>                             % 8b
+    log_d_v("eq :: eq_8b"),
+    R = [ $eq(X,Y), $eq(T1, Ys) ].
+
+eq(T1@[X|Xs], T2@[Y|_], R),
+        T1.is_lset(), T2.is_lset() ?=>                             % 8c
+    log_d_v("eq :: eq_8c"),
+    R = [ $eq(X,Y), $eq(Xs, T2) ].
+
+eq(T1@[X|Xs], T2@[Y|Ys], R),
+        T1.is_lset(), T2.is_lset() =>                              % 8d
+    log_d_v("eq :: eq_8d"),
+    R = [  
+        $eq( Xs,  [Y|N] ),  
+        $eq( [X|N],  Ys ) 
+    ].
+
+eq(T1, T2, R),
+        T1.struct(), T2.struct(),
+        T1.name() == T2.name(),
+        T1.arity() == T2.arity() =>                                % 9
+    log_d_v("eq :: eq_9"),
+    RR = [],
+    foreach(I in 1..T1.arity())
+        RR := RR ++ [  $eq( T1[I], T2[I] )  ]
+    end,
+    R = RR.
 
 
 
@@ -229,46 +231,46 @@ eq(T1, T2, R), struct(T1), struct(T2) =>                           % 9
 
 neq(T1, T2, _R), T1 == T2 =>                                       % 1
     log_d_vv("neq :: neq_1"),
-    fail.  %intentionally fail.
+    fail.  %sic.
 
-neq(T1, T2, R), nonvar(T1) =>                                      % 2
+neq(T1, T2, R), nonvar(T1), var(T2) =>                             % 2
     log_d_vv("neq :: neq_2"),
     R = [$neq(T2, T1)].
 
-neq(T1, T2@lset(Y, T1), R),
-        not occur_check(T1, Y) =>                                  % 3
+neq(T1, T2, R),
+        T2.is_lset(),
+        not occur_check(T1, T2.lset_head()),
+        T1 == T2.lset_rest() =>                                    % 3
     log_d_vv("neq :: neq_3"),
     RR = [],
-    foreach(YElem in Y)
-        RR := RR ++ [$neq(YElem, T1)] 
+    foreach(YElem in T2.lset_head())
+        RR := RR ++ [$nin(YElem, T1)] 
     end,
     R = [$or(RR)]. % FIXME what about the notin operator??
 
 neq(T1, T2, R), occur_check(T1, T2) =>                             % 4 
     log_d_vv("neq :: neq_4"),
-    R = [].
+    R = [].  % sic.
 
-neq(T1@lset(X,A), T2@lset(Y,B), R),
-        X.len() == 1, Y.len() == 1 ?=>                             % 5a
+neq(T1@[X|Xs], T2@[Y|Ys], R) ?=>                                   % 5a
     log_d_vv("neq :: neq_5a"),
-    R = [$insl(N, $lset(X,A), R1), $nin(N, $lset(Y, B))].
+    R = [$contains(T1, N), $nin(N, T2)].
 
-neq(T1@lset(X,A), T2@lset(Y,B), R),
-        X.len() == 1, Y.len() == 1 ?=>                             % 5b
+neq(T1@[X|Xs], T2@[Y|Ys], R) ?=>                                   % 5b
     log_d_vv("neq :: neq_5b"),
-    R = [$nin(N, $lset(X,A), R1), $insl(N, $lset(Y, B))].
+    R = [$nin(N, T1), $contains(T2, N)].
 
 neq(T1, T2, R), 
         struct(T1), struct(T2), 
         name(T1) !== name(T2) =>                                   % 6a
     log_d_vv("neq :: neq_6a"),
-    R = [].
+    R = [].  % sic.
 
 neq(T1, T2, R), 
         struct(T1), struct(T2),
         arity(T1) !== arity(T2) =>                                 % 6b
     log_d_vv("neq :: neq_6b"),
-    R = [].
+    R = [].  % sic.
 
 neq(T1, T2, R), 
         struct(T1), struct(T2) =>                                  % 7
@@ -291,18 +293,17 @@ neq(T1, T2, R) => % temp / DEFAULT??? FIXME
 % an alias for contains(T2, T1).
 insl(T1, T2, R) => contains(T2, T1, R).
 
-contains(lset([], not_a_value), _T1, R) =>                         % 1
+contains([], _, R) =>                                              % 1
     log_d_vv("contains :: in_1"),  
-    false.
+    false.  % sic.
 
-contains(T2@lset(X,A), T1, R) =>                                   % 2
+contains(T2@[X|Xs], T1, R) =>                                   % 2
     log_d_vv("contains :: in_2"),
-    member(Xx, X),
-    R = [ $or(  $eq(T1,Xx), $insl(T1,A)  ) ].
+    R = [ $or(  $eq(T1,X), $contains(Xs,T1)  ) ].
 
 contains(T2, T1, R), var(T2) =>                                    % 3
     log_d_vv("contains :: in_3"), 
-    R = [ $eq(T2, lset(T1, _N)) ].
+    R = [ $eq(T2, [T1|_N]) ].
 
 
 
@@ -337,6 +338,34 @@ union(S1@lset(X,A), S2, V, R),
             $eq(V, $lset([Xx], N))  
         ],
     R = R1 ++ R2.
+
+union(S1, S2@lset(Y, B), V),
+        S1.is_lset() =>                                            % 6
+    member(Xx, X),
+    R1 = [ $or(
+                [ $nin(Xx, S2), $union(N1, S2, N) ],
+                [ $eq(S1,$lset([Xx], N2)), $union(N1, N2, N) ]  % FIXME lset([Xx]) o lset([X]) ???
+            )],
+    R2 = [ 
+            $eq($lset([Xx], B), $lset([Xx], N1)), 
+            $eq(V, $lset([Xx], N))  
+        ],
+    R = R1 ++ R2.
+
+union(S1, S2, S3@lset(Y, B)),
+        =>                                                         % 7
+    member(Xx, X),
+    R1 = [ $or([
+                [ $eq(S1, $lset([Xx], N1)), $union(N1, S2, N) ],
+                [ $eq(S1,$lset([Xx], N2)), $union(N1, N2, N) ]  % FIXME lset([Xx]) o lset([X]) ???
+            ])
+        ],
+    R2 = [ 
+            $eq($lset([Xx], B), $lset([Xx], N1)), 
+            $eq(V, $lset([Xx], N))  
+        ],
+    R = R1 ++ R2.
+
 
 
 % ****** goal disjunction
@@ -399,6 +428,7 @@ anothersol() = A =>
 
 to_human(Term) = ResHuman =>
     ResHuman = to_human(Term, global(var_names_map)).
+to_human(Term, _) = Term.  % FIXME : temporary to_human/2 (the right one is not working).
 to_human(Term, Vars) = ResHuman =>
     log_d_v("to_human/1"),
     log_d_vvv("to_human/1 :: Vars=" ++ Vars.to_string),
@@ -417,6 +447,7 @@ to_human(Term, Vars) = ResHuman =>
 % 
 % @desc The predicate is true whether the variable X is a member of vars(Y).
 
+% FIXME : check soundess of occur_check
 occur_check(X, Y) => membchk(X, vars(Y)).
 
 % R is the boolean result used for the function is_occur_check.
@@ -425,7 +456,7 @@ occur_check(_X, _Y, R) => R = 0.
 is_occur_check(X, Y) = R => occur_check(X, Y, R).
 
 
-% TODO: comment me.
+% TODO : comment me.
 foreachnd_slice(List, Elem, Slice) => 
     foreachnd_slice(List, Elem, Slice, 1, List.len()).
 
