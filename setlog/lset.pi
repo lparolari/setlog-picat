@@ -58,7 +58,8 @@ lset_head(X, R) => R = [].
 is_lset(S) => list(S).
 
 
-%is_rest_equal(S1, S2) =>
-%    S1.lrest() == S2.lrest(),
-%    S1.lrest() !== not_a_value,
-%    S2.lrest() !== not_a_value.
+%% is_lset(S)
+%
+% @desc This predicate is true if S is an lset, false otherwise.
+
+is_emptyset([]) => true.

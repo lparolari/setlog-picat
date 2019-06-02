@@ -87,10 +87,10 @@ rule(neq(T1, T2), R) => neq(T1, T2, R).
 rule(or(T1, T2), R) => or(T1, T2, R).
 rule(or(T), R) => or(T, R).
 rule(insl(X, S), R) => insl(X, S, R).
+rule(nin(X, S), R) => nin(X, S, R).
 rule(contains(S, X), R) => contains(S, X, R).
 rule(union(S1, S2, S3), R) => union(S1, S2, S3, R).
 % FIXME : add "not found" constraint with custom error message.
-% FIXME : add nin operator
 
 
 
@@ -310,63 +310,93 @@ contains(T2, T1, R), var(T2) =>                                    % 3
 % ****** union constraints
 
 union(S1, S2, S3, R), 
-        S1.is_lset(), S2.is_lset(), S3.is_lset(),   % queste le ho messe per non scrivere la testa della regola esplicita.
-        S2 == S2 =>                                                % 1
+        S1.is_lset(), S2.is_lset(), S3.is_lset(),
+        S1 == S2 =>                                                % 1
+    log_d_v("union :: un_1"),
     R = [$eq(S1, S3)].
 
-union(S1, S2, S3@lset([],not_a_value), R),
-        S1.is_lset(), S2.is_lset() =>                              % 2
+union(S1, S2, S3, R),
+        S1.is_lset(), S2.is_lset(),
+        S3.is_emptyset() =>                                        % 2
+    log_d_v("union :: un_2"),
     R = [$eq(S1, S3), $eq(S2, S3)].
 
-union(S1@lset([],not_a_value), S2, V, R),
+union(S1, S2, V, R),
+        S1.is_emptyset(),
         S2.is_lset() =>                                            % 3
+    log_d_v("union :: un_3"),
     R = [$eq(V, S2)].
 
-union(S1, S2@lset([],not_a_value), V, R),
+union(S1, S2, V, R),
+        S2.is_emptyset(),
         S1.is_lset() =>                                            % 4
+    log_d_v("union :: un_4"),
     R = [$eq(V, S1)].
 
-union(S1@lset(X,A), S2, V, R),
+union(S1@[X|Xs], S2, V, R),
+        S1.is_lset(),
         S2.is_lset() =>                                            % 5
-    member(Xx, X),
+    log_d_v("union :: un_5"),
     R1 = [ $or(
-                [ $nin(Xx, S2), $union(N1, S2, N) ],
-                [ $eq(S2,$lset([Xx], N2)), $union(N1, N2, N) ]  % FIXME lset([Xx]) o lset([X]) ???
+                [ $nin(X, S2), $union(N1, S2, N) ],
+                [ $eq(S2,[X|N2]), $union(N1, N2, N) ]
             )],
     R2 = [ 
-            $eq($lset([Xx], A), $lset([Xx], N1)), 
-            $eq(V, $lset([Xx], N))  
+            $eq(S1, [X|N1]), 
+            $eq(V, [X|N])  
         ],
     R = R1 ++ R2.
 
-union(S1, S2@lset(Y, B), V),
-        S1.is_lset() =>                                            % 6
-    member(Xx, X),
+union(S2, S1@[X|Xs], V, R),
+        S1.is_lset(),
+        S2.is_lset() =>                                            % 6
+    log_d_v("union :: un_6"),
+    % this rule is intentionally identical to un_5, with head names swapped.
     R1 = [ $or(
-                [ $nin(Xx, S2), $union(N1, S2, N) ],
-                [ $eq(S1,$lset([Xx], N2)), $union(N1, N2, N) ]  % FIXME lset([Xx]) o lset([X]) ???
+                [ $nin(X, S2), $union(N1, S2, N) ],
+                [ $eq(S2,[X|N2]), $union(N1, N2, N) ]
             )],
     R2 = [ 
-            $eq($lset([Xx], B), $lset([Xx], N1)), 
-            $eq(V, $lset([Xx], N))  
+            $eq(S1, [X|N1]), 
+            $eq(V, [X|N])  
         ],
     R = R1 ++ R2.
 
-union(S1, S2, S3@lset(Y, B)),
-        =>                                                         % 7
-    member(Xx, X),
-    R1 = [ $or([
-                [ $eq(S1, $lset([Xx], N1)), $union(N1, S2, N) ],
-                [ $eq(S1,$lset([Xx], N2)), $union(N1, N2, N) ]  % FIXME lset([Xx]) o lset([X]) ???
-            ])
-        ],
-    R2 = [ 
-            $eq($lset([Xx], B), $lset([Xx], N1)), 
-            $eq(V, $lset([Xx], N))  
-        ],
-    R = R1 ++ R2.
+union(S1, S2, S3@[Z|Zs], R),
+        S1.is_lset(),
+        S2.is_lset(),
+        S3.is_lset() =>                                            % 7
+    log_d_v("union :: un_7"),
+    R1 = [ $eq(S1,[Z|N1]), $union(N1,B2,N) ],
+    R2 = [ $eq(S2,[Z|N1]), $union(S1,N1,N) ],
+    R3 = [ $eq(S1,[Z|N1]), $eq(S2,[Z|N2]), $union(N1,N2,N) ],
+    R4 = [ $eq(S3,[Z|N])],
+    
+    R = [ $or([R1,R2,R3]), R4].
 
 
+
+% ****** not membership.
+
+nin(X, S, R),
+        S.is_lset(),
+        S.is_emptyset() =>                                         % 1
+    log_d_v("nin :: nin_1"),
+    R = [].  % sic.
+
+nin(X, S@[Y|Ys], R),
+        S.is_lset() =>                                             % 2
+    log_d_v("nin :: nin_2"),
+    R = [ $neq(X,Y), $nin(X,Ys) ].
+
+nin(X, S, R),
+        occur_check(S, X) =>                                       % 3
+    log_d_v("nin :: nin_3"),
+    R = [].  % sic.
+
+nin(X, S, R) =>                                                    % def
+    log_d_v("nin :: nin_def"),
+    R = [ $nin(X,S) ].
 
 % ****** goal disjunction
 
