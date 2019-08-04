@@ -10,11 +10,12 @@ module lset.
 
 import log_h.
 
+new_lset() = [].
 new_lset(ListRest) = Lset => 
     Lset = ListRest.
-new_lset(Head, Rest) = Lset => 
-    to_lset_list(Head, Rest, List),
-    Lset = List.
+new_lset(Head, Rest) = Lset =>
+    if (not list(Head)) then Head := [Head] end,
+    append(Head, Rest, Lset).
 
 private
 to_lset_list([], Rest, List) => 
