@@ -1,9 +1,14 @@
+# BIN: output directory for compiled test files.
+# SOURCES: sources files.
+# TESTS: tests files.
+# PICAT: picat interpreter.
+# EXEC: test execution script.
 
-BIN=bin                     # output directory for compiled test files.
-SOURCES=../src/*         # sources files.
-TESTS=*_test.pi             # tests files.
-PICAT=picat                 # picat interpreter.
-EXEC=go_tests               # test execution script.
+BIN=bin
+SOURCES=../src/*
+TESTS=*_test.pi
+PICAT=picat
+EXEC=go_tests
 
 all: tests
 

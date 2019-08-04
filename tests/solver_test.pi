@@ -9,7 +9,9 @@ all =>
     log_mode(none),
     equality_tests(),
     inequality_tests(),
-    membership_tests().
+    membership_tests(),
+    union_tests(),
+    true.
 
 equality_tests() =>
     println("*** EQUALITY TESTS ***"),
@@ -36,7 +38,14 @@ membership_tests() =>
     setlog_in3_1_test,
     nl, nl.
 
-
+union_tests() =>
+    println("*** UNION TESTS ***"),
+    setlog_un1_1_test,
+    setlog_un2_1_test, setlog_un2_2_test,
+    setlog_un3_1_test,
+    setlog_un4_1_test,
+    setlog_un5_1_test,
+    nl, nl.
 
 % *********************************************************
 %    eq
@@ -45,31 +54,31 @@ membership_tests() =>
 % ---------------------------------------------------------
 % *** eq1
 
-setlog_eq1_1_test =>
+setlog_eq1_1_test ?=>
     A = new_assert("setlog_eq1_1_test"),
     F = [$eq(1, 1)],
     solve(F, FF),
     A.assert_equal([], FF).
+setlog_eq1_1_test => A = new_assert("setlog_eq1_1_test"), A.fail().
 
 setlog_eq1_2_test ?=>
     A = new_assert("setlog_eq1_2_test"),
     F = [$eq(1, 2)],
     solve(F, FF),
-    A.assert_fail_failed().
-setlog_eq1_2_test =>
-    A = new_assert("setlog_eq1_2_test"), 
-    A.assert_fail().
+    A.fail().
+setlog_eq1_2_test => A = new_assert("setlog_eq1_2_test"), A.assert_fail().
 
 
 % ---------------------------------------------------------
 % *** eq2
 
-setlog_eq2_1_test =>
+setlog_eq2_1_test ?=>
     A = new_assert("setlog_eq2_1_test"),
     F = [$eq(1, X)],
     solve(F, FF),
     A.assert_equal([], FF).
-
+setlog_eq2_1_test => A = new_assert("setlog_eq2_1_test"), A.fail().
+    
 
 % ---------------------------------------------------------
 % *** eq3
@@ -85,10 +94,8 @@ setlog_eq3_2_test ?=>
     F = [$eq(X, [1,2, X])],
     solve(F, FF),
     fail,
-    A.assert_fail_failed().
-setlog_eq3_2_test => 
-    A = new_assert("setlog_eq3_2_test"),
-    A.assert_fail().
+    A.fail().
+setlog_eq3_2_test => A = new_assert("setlog_eq3_2_test"), A.assert_fail().
 
 
 % ---------------------------------------------------------
@@ -98,26 +105,26 @@ setlog_eq4_1_test ?=>
     A = new_assert("setlog_eq4_1_test"),
     F = [$eq(X, [X])],
     solve(F, FF),
-    A.assert_fail_failed().
-setlog_eq4_1_test => 
-    A = new_assert("setlog_eq4_1_test"),
-    A.assert_fail().
+    A.fail().
+setlog_eq4_1_test => A = new_assert("setlog_eq4_1_test"), A.assert_fail().
 
 
 % ---------------------------------------------------------
 % *** eq5
 
-setlog_eq5_1_test =>
+setlog_eq5_1_test ?=>
     A = new_assert("setlog_eq5_1_test"),
     F = [$eq(X, 1)],
     solve(F, FF),
     A.assert_equal([], FF).
+setlog_eq5_1_test => A = new_assert("setlog_eq5_1_test"), A.fail().
 
-setlog_eq5_2_test =>
+setlog_eq5_2_test ?=>
     A = new_assert("setlog_eq5_2_test"),
     F = [$eq(X, Y)],
     solve(F, FF),
     A.assert_equal([], FF).
+setlog_eq5_2_test => A = new_assert("setlog_eq5_2_test"), A.fail().
 
 
 % ---------------------------------------------------------
@@ -127,19 +134,19 @@ setlog_eq6_1_test ?=>
         A = new_assert("setlog_eq6_1_test"),
         F = [$eq($f(1), $g(1))],
         solve(F, FF),
-        A.assert_fail_failed().
+        A.fail().
 setlog_eq6_1_test => A = new_assert("setlog_eq6_1_test"), A.assert_fail().
 
 
 % ---------------------------------------------------------
 % *** eq8
 
-setlog_eq8_1_test =>
+setlog_eq8_1_test ?=>
     A = new_assert("setlog_eq8_1_test"),
     F = [$eq( [b,X], [a,Y] )],
     solve(F, FF),
     A.assert_equal([], FF).
-setlog_eq8_1_test ?=> A = new_assert("setlog_eq8_1_test"), A.fail().
+setlog_eq8_1_test => A = new_assert("setlog_eq8_1_test"), A.fail().
 
 setlog_eq8_2_test ?=>
         A = new_assert("setlog_eq8_2_test"),
@@ -163,11 +170,12 @@ setlog_eq8_3_test => A = new_assert("setlog_eq8_3_test"), A.fail().
 % ---------------------------------------------------------
 % *** neq1
 
-setlog_neq1_1_test =>
+setlog_neq1_1_test ?=>
     A = new_assert("setlog_neq1_1_test"),
     F = [$neq(1, X)],
     solve(F, FF),
     A.assert_equal([$neq(X, 1)], FF).
+setlog_neq1_1_test => A = new_assert("setlog_neq1_1_test"), A.fail().
 
 
 
@@ -215,9 +223,71 @@ setlog_in2_2_test => A = new_assert("setlog_in2_2_test"), A.fail().
 % ---------------------------------------------------------
 % *** in_3
 
-setlog_in3_1_test =>
+setlog_in3_1_test ?=>
     A = new_assert("setlog_in3_1_test"),
     F = [ $contains( X, 1 ) ],
     solve(F, FF),
     A.assert_equal([], FF).
 setlog_in3_1_test => A = new_assert("setlog_in3_1_test"), A.fail().
+
+
+% *********************************************************
+%    union
+% *********************************************************
+
+% ---------------------------------------------------------
+% *** un_1
+
+setlog_un1_1_test ?=> 
+    A = new_assert("setlog_un1_1_test"),
+    F = [ $union( [1,2], [1,2], [1,X] ) ],
+    solve(F, FF),
+    A.assert_equal([], FF).
+setlog_un1_1_test => A = new_assert("setlog_un1_1_test"), A.fail().
+
+% ---------------------------------------------------------
+% *** un_2
+
+setlog_un2_1_test ?=> 
+    A = new_assert("setlog_un2_1_test"),
+    F = [ $union( [], [], [] ) ],
+    solve(F, FF),
+    A.assert_equal([], FF).
+setlog_un2_1_test => A = new_assert("setlog_un2_1_test"), A.fail().
+
+setlog_un2_2_test ?=> 
+    A = new_assert("setlog_un2_2_test"),
+    F = [ $union( [1|X], [], [] ) ],
+    solve(F, FF),
+    A.fail().
+setlog_un2_2_test => A = new_assert("setlog_un2_2_test"), A.assert_fail().
+
+% ---------------------------------------------------------
+% *** un_3
+
+setlog_un3_1_test ?=> 
+    A = new_assert("setlog_un3_1_test"),
+    F = [ $union( [], [1,2], [1,X] ) ],
+    solve(F, FF),
+    A.assert_equal([], FF).
+setlog_un3_1_test => A = new_assert("setlog_un3_1_test"), A.fail().
+
+% ---------------------------------------------------------
+% *** un_4
+
+setlog_un4_1_test ?=> 
+    A = new_assert("setlog_un4_1_test"),
+    F = [ $union( [1,2], [], [1|X] ) ],
+    solve(F, FF),
+    A.assert_equal([], FF).
+setlog_un4_1_test => A = new_assert("setlog_un4_1_test"), A.fail().
+
+% ---------------------------------------------------------
+% *** un_5
+
+setlog_un5_1_test ?=> 
+    A = new_assert("setlog_un5_1_test"),
+    F = [ $union( [1,2|X], [1,2,3], Y ) ],
+    solve(F, FF),
+    A.assert_equal([], FF).
+setlog_un5_1_test => A = new_assert("setlog_un5_1_test"), A.fail().
