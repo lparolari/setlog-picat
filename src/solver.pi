@@ -93,6 +93,7 @@ rule(nin(X, S), R) => nin(X, S, R).
 rule(contains(S, X), R) => contains(S, X, R).
 rule(union(S1, S2, S3), R) => union(S1, S2, S3, R).
 rule(disj(S1, S2), R) => disj(S1, S2, R).
+rule(subset(S1, S2), R) => subset(S1, S2, R).
 % FIXME : add "not found" constraint with custom error message.
 
 
@@ -418,6 +419,60 @@ disj(A, B, R),
         A !== B =>                                                 % irreducible
     log_d_v("disjointness :: disj_irreducible"),
     R = [ $disj(A, B) ].
+
+
+% ****** subset rules.
+
+subset(A, A, R),
+        A.is_lset() =>                                             % 1
+    log_d_v("subset :: ss_1"),
+    R = [].
+
+subset(B, A, R),
+        A.is_lset(), B.is_lset(),
+        B.is_emptyset() =>                                         % 2
+    log_d_v("subset :: ss_2"),
+    R = [].
+
+subset(A, B, R),
+        A.is_lset(), B.is_lset(),
+        B.is_emptyset() =>                                         % 3
+    log_d_v("subset :: ss_3"),
+    Empty = new_lset(),
+    R = [ $eq(A, Empty) ].
+
+subset(S1@[A|As], B, R),
+        S1.is_lset(), B.is_lset(),
+        B.is_emptyset() =>                                         % 4
+    log_d_v("subset :: ss_4"),
+    fail. % sic.
+
+subset(S1@[A|As], B, R),
+        S1.is_lset(), B.is_lset() =>                               % 5
+    log_d_v("subset :: ss_5"),
+    T = new_lset(A, N),
+    R = [
+        $eq(B, T),
+        $subset(As, T)
+    ].
+
+subset(S1@[A|As], S2@[B|Bs], R),
+        S1.is_lset(), S2.is_lset() =>                              % 6
+    log_d_v("subset :: ss_6"),
+    R1 = [ $eq(A, B), $subset(As, S2) ],
+    R2 = [ $neq(A, B), $contains(Bs, A), $subset(As, S2) ],
+    R = [ $or(R1, R2) ].
+
+subset(A, B, R),
+        var(A), var(B),
+        A !== B =>                                                 % irreducible 1
+    log_d_v("subset :: irr_1"),
+    R = [ $subset(A,B) ].
+
+subset(A, S2@[B|Bs], R)
+        =>                                                         % irreducible 2
+    log_d_v("subset :: irr_2"),
+    R = [ $subset(A,S2) ].
 
 
 % ****** not membership.
