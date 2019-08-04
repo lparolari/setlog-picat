@@ -1,6 +1,6 @@
 %% module commands
 %
-% TBD
+% TODO
 
 module commands.
 
@@ -12,7 +12,24 @@ import prompt.
 
 go => main.
 main =>
-    init, introduce, obeyCommands, halt.
+    catch(
+        (init, introduce, obeyCommands, halt),
+        Exception,
+        (fatal(Exception), obeyCommands)
+    ).
+
+fatal(Exception) =>
+    nl,
+    println("### FATAL ERROR OCCURRED ###"), 
+    println("#"),
+    println("# Exception:"),
+    println("#     " ++ Exception.to_string), 
+    println("#"),
+    println("# Please report this issue to the project's mantainer or"),
+    println("# try debug the application with `trace` command."), 
+    println("#"),
+    println("# Restarting ..."),
+    nl.
 
 
 %% init() is det
@@ -29,7 +46,7 @@ init =>
 introduce =>
     println("This is the pure implementation of {log} in Picat."),
     println("Copyright (C) 2019 Luca Parolari <luca.parolari23@gmail.com>"),
-    println("  This program is free software, covered by the !!!TODO!!! GNU General Public License, and you are welcome to change it and/or distribute copies of it under certain conditions."),
+    println("  This program is free software, covered by the !!!TODO!!!"),
     println("  There is ABSOLUTELY NO WARRANTY for this program."),
     println("Type 'copying' to see the conditions"),
     println("Type 'warranty' for details."),
@@ -82,14 +99,14 @@ doCommand(Command) => doCommand(Command, _).
 % Quit the system.
 doCommand(quit, _) =>
     println("Bye!"),
-    abort.
+    halt.
 
 % Show warranty informations.
-doCommand(warranty, _) =>  % TBD
+doCommand(warranty, _) =>  % TODO
     println("Warranty").
 
 % Show copying informations.
-doCommand(copying, _) =>  % TBD
+doCommand(copying, _) =>  % TODO
     println("Copying").
 
 % Show informations about the system.
@@ -99,28 +116,45 @@ doCommand(info, _) =>
     true.
 
 % Show the help message.
-doCommand(help, Args) =>  % TBD
+doCommand(help, Args) =>  % TODO
     if Args.len() == 0 then
         println("Setlog provides you with the following commands:"), nl,
-        println("help      - the command you have just issued;"),
-        println("info      - display the current interpreter status;"),
-        println("up   <n>  - redo the last <n> command (leave empty for the last one);"),
-        println("log  <m>  - set the log mode to <m> (available log mode: " ++ get_log_modes().to_string ++ ");"),
-        println("solve <f> - solve the formula <f> with the solver;") 
+        println("help <what>"),
+        println("    Show help for <what>."),
+        println("    The argument describes the topic to give help for."),
+        println("    If <what> is empty, this message is shown."), nl,
+        println("info"),
+        println("    Display the current interpreter status."), nl,
+        println("up <n>"), 
+        println("    Redo the last <n> command."),
+        println("    If <n> is empty the last command is issued."), nl,
+        println("log <mode>"), 
+        println("    Set the log mode to <mode> (available log mode: " ++ get_log_modes().to_string ++ ");"), nl,
+        println("solve"),
+        println("solve <formula>"),
+        println("solve file <file>"),
+        println("    Solve the formula, respectively, typed in stdin, given as argument, or read from file"),
+        println("    using the setlog solver."), nl
     elseif Args.first() == solve then
+        println("NAME"),
+        println("    solve - solve formula"), nl,
         println("SYNOPSIS"),
-        println("\t{log} => TERM."), nl,
-        println("\tTERM ::= COMMAND | FORMULAS"), nl,
-        println("\tCOMMAND ::= halt | config | help"), nl,
-        println("\tFORMULAS ::= array(FORMULA, FORMULA...)"),
-        println("\tFORMULA ::= eq(TERM, TERM) | neq(TERM, TERM) | ..."), nl,
-        println("\tNote that array(...) is a handy name for [...]."), nl, 
+        println("    solve"),
+        println("    solve <formula>"),
+        println("    solve file <file>"), nl,
+        println("    Syntax for a formula is given with a not-so-formal context free grammar."), nl,
+        println("    {log} => FORMULA."), nl,
+        println("    FORMULA ::= array(TERM, TERM...)"),
+        println("    TERM ::= eq(TERM, TERM) | neq(TERM, TERM) | ..."), nl,
+        println("    Note that array(...) is a handy name for [...]."), nl, 
         println("DESCRIPTION"),
-        println("\tA short description")
+        println("    Solve a given formula with the setlog solver.")
+    else
+        println("Specific help for this command is not available.")
     end.
 
 % Manage log level. 
-doCommand(log, Args) =>  % TBD
+doCommand(log, Args) =>  % TODO
     if Args.len() != 1 then wrongArgNumber(log, 1), fail end,
     parse_term(Args.first().to_string(), Term, _Vars),
     if (membchk(Term, get_log_modes())) then
@@ -138,20 +172,37 @@ doCommand(up, _Arguments@[N|_]) =>
     doCommand(Command, Args).
 
 % Run the solver and solves the formula passed in the first argument. 
-doCommand(solve, _) =>  % TBD
-    print("{log} => "), S = read_line(),
-    %writeln(S),
-    parse_term(S, Term, Vars),
-    Map = new_map(),
-    Map.put(vars_map, Vars),
-    Map.put(terms_map, Term),
-    top_level(Term, Map),
-    true.
+doCommand(solve, [file, F]) => 
+    FD = open(F),
+    S = read_line(FD),
+    while(S != end_of_file)
+        catch(
+            (
+                print("{log} => "), print(S), nl,
+                parse_term(S, Term, Vars),
+                Map = new_map(),
+                Map.put(vars_map, Vars),
+                Map.put(terms_map, Term),
+                top_level(Term, Map)
+            ),
+            _,
+            true
+        ),
+        S := end_of_file %S := read_line(FD)
+    end.
 
-% Run a commands that does nothing.
-doCommand(skip, _) => 
-    println("No action performed."),
-    true.
+doCommand(solve, _) =>
+    print("{log} => "), S = read_line(),
+    catch(
+        (
+            parse_term(S, Term, Vars),
+            Map = new_map(),
+            Map.put(vars_map, Vars),
+            Map.put(terms_map, Term),
+            top_level(Term, Map)
+        ),
+        _,
+        true).
 
 
 %% readCommandLine() = CommandArgs is det
