@@ -76,14 +76,14 @@ setlog_eq2_1_test =>
 
 setlog_eq3_1_test =>
     A = new_assert("setlog_eq3_1_test"),
-    F = [$eq(X, $lset([1,2], X))],
+    F = [ $eq(X, [1,2,X]) ],
     solve(F, FF),
     A.assert_equal([], FF).
 
 setlog_eq3_2_test ?=>
     A = new_assert("setlog_eq3_2_test"),
-    %F = [$eq(X, $lset([1,2], X))],
-    %solve(F, FF),
+    F = [$eq(X, [1,2, X])],
+    solve(F, FF),
     fail,
     A.assert_fail_failed().
 setlog_eq3_2_test => 
@@ -96,7 +96,7 @@ setlog_eq3_2_test =>
 
 setlog_eq4_1_test ?=>
     A = new_assert("setlog_eq4_1_test"),
-    F = [$eq(X, $lset([X], not_a_value))],
+    F = [$eq(X, [X])],
     solve(F, FF),
     A.assert_fail_failed().
 setlog_eq4_1_test => 
@@ -136,7 +136,7 @@ setlog_eq6_1_test => A = new_assert("setlog_eq6_1_test"), A.assert_fail().
 
 setlog_eq8_1_test =>
     A = new_assert("setlog_eq8_1_test"),
-    F = [$eq( lset([b],X), lset([a],Y) )],
+    F = [$eq( [b,X], [a,Y] )],
     solve(F, FF),
     A.assert_equal([], FF).
 setlog_eq8_1_test ?=> A = new_assert("setlog_eq8_1_test"), A.fail().
@@ -180,7 +180,7 @@ setlog_neq1_1_test =>
 
 setlog_insl_1_test ?=>
     A = new_assert("setlog_insl_1_test"),
-    F = [ $insl(1, $lset([9,8,7], X)) ],
+    F = [ $insl(1, [9, 8, 7, X]) ],
     solve(F, FF),
     A.assert_equal([], FF).
 setlog_insl_1_test => A = new_assert("setlog_insl_1_test"), A.fail().
@@ -190,7 +190,7 @@ setlog_insl_1_test => A = new_assert("setlog_insl_1_test"), A.fail().
 
 setlog_in1_1_test ?=>
     A = new_assert("setlog_in1_1_test"),
-    F = [ $contains($lset([], not_a_value), 1) ],
+    F = [ $contains([], 1) ],
     solve(F, FF),
     A.fail().
 setlog_in1_1_test => A = new_assert("setlog_in1_1_test"), A.assert_fail().
@@ -200,14 +200,14 @@ setlog_in1_1_test => A = new_assert("setlog_in1_1_test"), A.assert_fail().
 
 setlog_in2_1_test ?=>
     A = new_assert("setlog_in2_1_test"),
-    F = [ $contains($lset([1,2,3],X), 3) ],
+    F = [ $contains([1,2,3,X], 3) ],
     solve(F, FF),
     A.assert_equal([], FF).
 setlog_in2_1_test => A = new_assert("setlog_in2_1_test"), A.fail().
 
 setlog_in2_2_test ?=>
     A = new_assert("setlog_in2_2_test"),
-    F = [ $contains($lset([1,2,3], X), 5) ],
+    F = [ $contains([1, 2, 3, X], 5) ],
     solve(F, FF),
     A.assert_equal([], FF).
 setlog_in2_2_test => A = new_assert("setlog_in2_2_test"), A.fail().
