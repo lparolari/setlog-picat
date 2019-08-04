@@ -1,6 +1,6 @@
 
 BIN=bin                     # output directory for compiled test files.
-SOURCES=../setlog/*         # sources files.
+SOURCES=../src/*         # sources files.
 TESTS=*_test.pi             # tests files.
 PICAT=picat                 # picat interpreter.
 EXEC=go_tests               # test execution script.

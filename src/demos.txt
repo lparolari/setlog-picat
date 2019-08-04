@@ -35,6 +35,10 @@ eq(X, $set(X), R).
 [eq(f(X,2,3), g(1,Y,3))].
 
 
+some lset test
+
+[eq([A], [B])]
+
 
 *** NEQ ***
 
