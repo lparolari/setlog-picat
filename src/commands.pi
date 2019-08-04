@@ -1,6 +1,9 @@
 %% module commands
 %
-% TODO
+% @author Luca Parolari <luca.parolari23@gmail.com>
+%
+% This module contains predicates and functions for the command line 
+% interface that interacts with setlog solver in Picat.
 
 module commands.
 
@@ -18,6 +21,9 @@ main =>
         (fatal(Exception), obeyCommands)
     ).
 
+
+% fatal(+Exception) is det
+
 fatal(Exception) =>
     nl,
     println("### FATAL ERROR OCCURRED ###"), 
@@ -26,7 +32,7 @@ fatal(Exception) =>
     println("#     " ++ Exception.to_string), 
     println("#"),
     println("# Please report this issue to the project's mantainer or"),
-    println("# try debug the application with `trace` command."), 
+    println("# try debuging the application with the `trace` command."), 
     println("#"),
     println("# Restarting ..."),
     nl.
@@ -46,7 +52,7 @@ init =>
 introduce =>
     println("This is the pure implementation of {log} in Picat."),
     println("Copyright (C) 2019 Luca Parolari <luca.parolari23@gmail.com>"),
-    println("  This program is free software, covered by the !!!TODO!!!"),
+    println("  This program is free software, covered by the MIT License"),
     println("  There is ABSOLUTELY NO WARRANTY for this program."),
     println("Type 'copying' to see the conditions"),
     println("Type 'warranty' for details."),
@@ -102,12 +108,30 @@ doCommand(quit, _) =>
     halt.
 
 % Show warranty informations.
-doCommand(warranty, _) =>  % TODO
-    println("Warranty").
+doCommand(warranty, _) =>
+    println("
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+    ").
 
 % Show copying informations.
-doCommand(copying, _) =>  % TODO
-    println("Copying").
+doCommand(copying, _) =>
+    println("
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the 'Software'), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+    ").
 
 % Show informations about the system.
 doCommand(info, _) =>
@@ -116,7 +140,7 @@ doCommand(info, _) =>
     true.
 
 % Show the help message.
-doCommand(help, Args) =>  % TODO
+doCommand(help, Args) =>
     if Args.len() == 0 then
         println("Setlog provides you with the following commands:"), nl,
         println("help <what>"),
@@ -126,10 +150,12 @@ doCommand(help, Args) =>  % TODO
         println("info"),
         println("    Display the current interpreter status."), nl,
         println("up <n>"), 
-        println("    Redo the last <n> command."),
-        println("    If <n> is empty the last command is issued."), nl,
+        println("    Redo the last <n> command issued."),
+        println("    If <n> is empty the last command is issued,"),
+        println("    this is equivalent to `up 0`."), nl,
         println("log <mode>"), 
-        println("    Set the log mode to <mode> (available log mode: " ++ get_log_modes().to_string ++ ");"), nl,
+        println("    Set the log mode to <mode>."), 
+        println("    Available log mode: " ++ get_log_modes().to_string ++ "."), nl,
         println("solve"),
         println("solve <formula>"),
         println("solve file <file>"),
@@ -154,7 +180,7 @@ doCommand(help, Args) =>  % TODO
     end.
 
 % Manage log level. 
-doCommand(log, Args) =>  % TODO
+doCommand(log, Args) =>
     if Args.len() != 1 then wrongArgNumber(log, 1), fail end,
     parse_term(Args.first().to_string(), Term, _Vars),
     if (membchk(Term, get_log_modes())) then
@@ -167,42 +193,55 @@ doCommand(log, Args) =>  % TODO
 doCommand(up, []) => 
     [Command | Args] = get_last_command(), 
     doCommand(Command, Args).
+doCommand(up, [history]) =>
+    I = global(last_command_idx),
+    while (I >= 0)
+        println(get_last_command(I)),
+        I := I - 1
+    end.
 doCommand(up, _Arguments@[N|_]) => 
     [Command | Args] = get_last_command(N.to_string().to_int()),
     doCommand(Command, Args).
 
-% Run the solver and solves the formula passed in the first argument. 
 doCommand(solve, [file, F]) => 
+    % Please note that this command solves only the 
+    % first formula in a file. 
     FD = open(F),
     S = read_line(FD),
-    while(S != end_of_file)
-        catch(
-            (
-                print("{log} => "), print(S), nl,
-                parse_term(S, Term, Vars),
-                Map = new_map(),
-                Map.put(vars_map, Vars),
-                Map.put(terms_map, Term),
-                top_level(Term, Map)
-            ),
-            _,
-            true
-        ),
-        S := end_of_file %S := read_line(FD)
-    end.
+    %while(S != end_of_file)
+        print("{log} => "), print(S), nl,
+        solve(S),
+    %    S := end_of_file %S := read_line(FD)
+    %end,
+    close(FD).
+
+doCommand(solve, Args@[_|_]) =>
+    S = "",
+    foreach (Atom in Args)
+        S := S ++ Atom.to_string
+    end,
+    println("{log} => " ++ S.to_string),
+    solve(S).
 
 doCommand(solve, _) =>
-    print("{log} => "), S = read_line(),
+    print("{log} => "), S = read_line(), nl,
+    solve(S).
+
+
+%% solve(+FormulaString) is det
+
+solve(FormulaString) =>
     catch(
         (
-            parse_term(S, Term, Vars),
+            parse_term(FormulaString, Term, Vars),
             Map = new_map(),
             Map.put(vars_map, Vars),
             Map.put(terms_map, Term),
-            top_level(Term, Map)
+            once top_level(Term, Map)
         ),
         _,
-        true).
+        true
+    ).
 
 
 %% readCommandLine() = CommandArgs is det
