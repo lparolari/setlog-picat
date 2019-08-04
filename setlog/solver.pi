@@ -43,30 +43,34 @@ top_level(Term, Map) ?=>
 top_level(_, _) =>
     println("no!").
 
-%% solve(Formulas, FormulaRes) is det
+%% solve(+Formula, -Constraints) is det
 %
-% @param Formulas:list  A list of goals to solve in conjunction.
-% @param FormulaRes:list  A list of solved contraints.
+% @param Formula:list  A list of goals to solve in conjunction.
+% @param Constraints:list  A list of solved contraints.
+%
+% @desc Solves the given formula Formula creating a list of constraints
+%       Constraints until a fixed point is reached.
 
-solve(Formulas, FormulaRes) =>
+solve(Formula, Constraints) =>
     log_d_v("solve/2"),
-    FormulasNew := [],
-    foreach (Formula in Formulas)
-        log_d_vvv("solve/2 :: foreach : Formula before="++Formula.to_string),
-        sat(Formula, Res),
+    NewConstraints := [],
+    log_d_vvv("solve/2 :: Formula="++Formula.to_string),
+    foreach (Term in Formula)
+        log_d_vvv("solve/2 :: foreach : Term before="++Term.to_string),
+        sat(Term, Res),
         log_d_vvv("solve/2 :: foreach : Res="++Res.to_string),
-        FormulasNew := FormulasNew ++ Res,
-        log_d_vvv("solve/2 :: foreach : FormulasNew="++FormulasNew.to_string)
+        NewConstraints := NewConstraints ++ Res,
+        log_d_vvv("solve/2 :: foreach : NewConstraints="++NewConstraints.to_string)
     end,
-    log_d_vvv("solve/2 :: Formulas="++Formulas.to_string),
-    log_d_vvv("solve/2 :: FormulasNew="++FormulasNew.to_string),
-    println("  " ++ Formulas.to_string ++ "  ==>  " ++ FormulasNew.to_string),
-    if FormulasNew !== Formulas then
+    log_d_vvv("solve/2 :: Formula="++Formula.to_string),
+    log_d_vvv("solve/2 :: NewConstraints="++NewConstraints.to_string),
+    println("  " ++ Formula.to_string ++ "  ==>  " ++ NewConstraints.to_string),
+    if NewConstraints !== Formula then
         log_d_vvv("solve/2 :: FOld not equal FNew"),
-        solve(FormulasNew, FormulaRes)
+        solve(NewConstraints, Constraints)
     else
         log_d_vvv("solve/2 :: FOld equal FNew"),
-        FormulaRes = FormulasNew
+        Constraints = NewConstraints
     end.
 
 
@@ -80,8 +84,6 @@ sat(F1, FnewR) =>
     log_d_vvv("sat/2 :: F1="++F1.to_string++", FnewR="++FnewR.to_string),
     rule(F1,FnewR).
 
-% ENHANCEMENT: add a rule preprocessor that removes duplicates from $set([ ... ]) 
-% -- no more required?
 rule(eq(T1,T2), R) => eq(T1, T2, R).
 rule(neq(T1, T2), R) => neq(T1, T2, R).
 rule(or(T1, T2), R) => or(T1, T2, R).
@@ -150,7 +152,7 @@ eq(T1@[X|_], T2, R),
     log_d_v("eq :: eq_7b"),
 
     YH = T2.lset_head(),                   % head of T2.
-    foreachnd_slice(YH, YElem, YSlice),   % get the j-th element nondet.
+    foreachnd_slice(YH, YElem, YSlice),    % get the j-th element nondet.
     YRest = T2.lset_rest(),                % rest of T2.
     YSetSliced = new_lset(YSlice, YRest),  % build T2 without j-th elem.
 
@@ -297,7 +299,7 @@ contains([], _, R) =>                                              % 1
     log_d_vv("contains :: in_1"),  
     false.  % sic.
 
-contains(T2@[X|Xs], T1, R) =>                                   % 2
+contains(T2@[X|Xs], T1, R) =>                                      % 2
     log_d_vv("contains :: in_2"),
     R = [ $or(  $eq(T1,X), $contains(Xs,T1)  ) ].
 
@@ -449,7 +451,7 @@ anothersol() = A =>
         A = confirm("Another solution?").
 
 
-%% to_human(Term, Vars) = ResHuma
+%% to_human(Term, Vars) = ResHuman
 %
 % @param Vars:map   A map containing Name=var.
 % @param Term:term  A term in Picat representation.
