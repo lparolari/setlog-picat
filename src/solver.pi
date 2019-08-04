@@ -92,6 +92,7 @@ rule(insl(X, S), R) => insl(X, S, R).
 rule(nin(X, S), R) => nin(X, S, R).
 rule(contains(S, X), R) => contains(S, X, R).
 rule(union(S1, S2, S3), R) => union(S1, S2, S3, R).
+rule(disj(S1, S2), R) => disj(S1, S2, R).
 % FIXME : add "not found" constraint with custom error message.
 
 
@@ -376,6 +377,47 @@ union(S1, S2, S3@[Z|Zs], R),
     
     R = [ $or([R1,R2,R3]), R4].
 
+
+% ****** disjointness constraints.
+
+disj(A, B, R),
+        A.is_lset(), B.is_lset(),
+        A.is_emptyset() =>                                         % 1
+    log_d_v("disjointness :: disj_1"),
+    R = [].
+
+disj(A, B, R),
+        A.is_lset(), B.is_lset(),
+        B.is_emptyset() =>                                         % 2
+    log_d_v("disjointness :: disj_2"),
+    R = [].
+
+disj(A, A, R),
+        A.is_lset() =>                                             % 3
+    log_d_v("disjointness :: disj_3"),
+    Empty = new_lset(),
+    R = [ $eq(A, Empty) ].
+
+disj(S1@[B|Bs], A, R),
+        S1.is_lset() =>                                            % 4
+    log_d_v("disjointness :: disj_4"),
+    R = [ $nin(B, A), $disj(A, Bs) ].
+
+disj(A, S2@[B|Bs], R),
+        S2.is_lset() =>                                            % 5
+    log_d_v("disjointness :: disj_5"),
+    R = [ $nin(B, A), $disj(A, Bs) ].
+
+disj(S1@[A|As], S2@[B|Bs], R),
+        S1.is_lset(), S2.is_lset() =>                              % 6
+    log_d_v("disjointness :: disj_6"),
+    R = [ $neq(A, B), $nin(A, Bs), $nin(B, As), $disj(As, Bs) ].
+
+disj(A, B, R),
+        var(A), var(B),
+        A !== B =>                                                 % irreducible
+    log_d_v("disjointness :: disj_irreducible"),
+    R = [ $disj(A, B) ].
 
 
 % ****** not membership.
