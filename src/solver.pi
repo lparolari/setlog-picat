@@ -64,7 +64,7 @@ solve(Formula, Constraints) =>
     end,
     log_d_vvv("solve/2 :: Formula="++Formula.to_string),
     log_d_vvv("solve/2 :: NewConstraints="++NewConstraints.to_string),
-    println("  " ++ Formula.to_string ++ "  ==>  " ++ NewConstraints.to_string),
+    if get_global(quiet_mode) !== true then println("  " ++ Formula.to_string ++ "  ==>  " ++ NewConstraints.to_string) end,
     if NewConstraints !== Formula then
         log_d_vvv("solve/2 :: FOld not equal FNew"),
         solve(NewConstraints, Constraints)

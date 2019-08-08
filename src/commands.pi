@@ -44,7 +44,8 @@ init =>
     log_mode([v,vv,vvv]),
     global(last_command_idx, 0), 
     global(last_commands, new_map()),
-    global(last_args, new_map()), true.
+    global(last_args, new_map()),
+    global(quiet_mode, false).
 
 
 %% introduce() is det
@@ -78,11 +79,12 @@ obeyCommands() ?=>
                             info,
                             solve, 
                             up, 
-                            log]) then
+                            log,
+                            quiet]) then
+            doCommand(Command, Arguments),
             if Command !== up then
-                push_last_command(Command, Arguments)
-            end,
-            doCommand(Command, Arguments)
+                push_last_command(Command, Arguments)    
+            end
         else 
             unknownCommand(Command)
         end
@@ -137,6 +139,7 @@ conditions:
 doCommand(info, _) =>
     println("Current log level: " ++ log_mode().to_string), 
     println("    Echo enabled : " ++ get_echo_enabled().to_string),
+    println("      Quiet mode : " ++ get_global(quiet_mode).to_string),
     true.
 
 % Show the help message.
@@ -160,7 +163,10 @@ doCommand(help, Args) =>
         println("solve <formula>"),
         println("solve file <file>"),
         println("    Solve the formula, respectively, typed in stdin, given as argument, or read from file"),
-        println("    using the setlog solver."), nl
+        println("    using the setlog solver."), nl,
+        println("quiet <mode>"),
+        println("    Set the quit mode execution."),
+        println("    Available mode: [true, false]. Default is true."), nl
     elseif Args.first() == solve then
         println("NAME"),
         println("    solve - solve formula"), nl,
@@ -196,7 +202,7 @@ doCommand(up, []) =>
 doCommand(up, [history]) =>
     I = global(last_command_idx),
     while (I >= 0)
-        println(get_last_command(I)),
+        print(I), print(": "), println(get_last_command(I)),
         I := I - 1
     end.
 doCommand(up, _Arguments@[N|_]) => 
@@ -226,6 +232,16 @@ doCommand(solve, Args@[_|_]) =>
 doCommand(solve, _) =>
     print("{log} => "), S = read_line(), nl,
     solve(S).
+
+% Set quiet mode.
+doCommand(quiet, Args) =>
+    if Args.len() != 1 then wrongArgNumber(quiet, 1), fail end,
+    parse_term(Args.first().to_string(), Term, _Vars),
+    if (membchk(Term, [true, false])) then
+        set_global(quiet_mode, Term)
+    else
+        wrongArgValues(solve, mode, [true, false])
+    end.
 
 
 %% solve(+FormulaString) is det
