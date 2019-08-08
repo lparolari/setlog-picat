@@ -28,26 +28,27 @@ confirm(Q) = A =>
         A = 0
     end.
 
+
 %% echo(P) is det
 %
 % @desc Print the phrase P to the standard output if echo is enabled (i.e., the global prompt_echo_enabled is true).
 
 echo(P), 
-        is_global(prompt_echo_enabled), 
-        get_global(prompt_echo_enabled) == true  => 
+        is_global(quiet_mode), 
+        get_global(quiet_mode) !== true  => 
     println(P.to_string).
+
 echo(_) => true.
 
+echo(P, force) => println(P.to_string).
 
-%% set_echo_enabled(B)
-%
-% @param B:bool  `true` to enable echo, `false` otherwise.
 
-set_echo_enabled(B) =>
-    set_global(prompt_echo_enabled, B).
-get_echo_enabled() = B =>
-    if is_global(prompt_echo_enabled) then 
-        B = get_global(prompt_echo_enabled)
+set_quiet(B) =>
+    set_global(quiet_mode, B).
+
+get_quiet() = B =>
+    if is_global(quiet_mode) then 
+        B = get_global(quiet_mode)
     else
-        B = true
+        B = false
     end.

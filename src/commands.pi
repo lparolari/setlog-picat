@@ -137,9 +137,8 @@ conditions:
 
 % Show informations about the system.
 doCommand(info, _) =>
-    println("Current log level: " ++ log_mode().to_string), 
-    println("    Echo enabled : " ++ get_echo_enabled().to_string),
-    println("      Quiet mode : " ++ get_global(quiet_mode).to_string),
+    println("Current log level: " ++ log_mode().to_string),
+    println("       Quiet mode: " ++ get_global(quiet_mode).to_string),
     true.
 
 % Show the help message.
@@ -238,7 +237,7 @@ doCommand(quiet, Args) =>
     if Args.len() != 1 then wrongArgNumber(quiet, 1), fail end,
     parse_term(Args.first().to_string(), Term, _Vars),
     if (membchk(Term, [true, false])) then
-        set_global(quiet_mode, Term)
+        set_quiet(Term)
     else
         wrongArgValues(solve, mode, [true, false])
     end.
