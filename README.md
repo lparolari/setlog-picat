@@ -6,7 +6,7 @@
 
 [here goes a gif explaining what this repository is about]
 
-**!! This repository contains the code for my bachelor degree thesis project.**
+**:warning: This repository contains the code for my bachelor degree thesis project :relaxed:**
 
 *setlog-picat* is a pure implementation of [{log}](http://people.dmi.unipr.it/gianfranco.rossi/setlog.Home.html) (read
 setlog) in [picat](http://picat-lang.org/). This work is related to the {log} project.
@@ -25,18 +25,20 @@ fundamental forms of set designation and a number of primitive operations for se
    * [<g-emoji class="g-emoji" alias="mortar_board" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f393.png">🎓</g-emoji> License](#-license)
 
 
-## 🚀 Getting Started
+## :rocket: Getting Started
+
+{log} is a language for binary relations over sets. 
 
 Below you will find everything you need to know about this setlog implementation. Start form the [install](#-install) 
 section if you want to play with the setlog solver, type in some formulas and see the magic.
 
 
-## 🎨 Features (Working on)
+## :art: Features (Working on)
 
 TBD
 
 
-## 💾 Install
+## :floppy_disk: Install
 
 - Install the Picat engine following the install procedure [here](http://picat-lang.org/).
 - Download the setlog engine for picat
@@ -45,7 +47,7 @@ git clone https://github.com/lparolari/setlog-picat-draft.git
 cd setlog-picat-draft
 ```
 
-## ▶️ Usage
+## :arrow_forward: Usage
 
 ```
 $ picat               # start picat interpreter.
@@ -56,7 +58,7 @@ $ {log} => Enter your formula here...
 
 
 
-## 🎁 Contributing
+## :gift: Contributing
 
 1. Fork it!
 2. Create your feature branch: `git checkout -b my-new-feature`
@@ -65,11 +67,11 @@ $ {log} => Enter your formula here...
 5. Submit a pull request :D
 
 
-## ❤️ Authors
+## :heart: Authors
 
 Luca Parolari <<luca.parolari23@gmail.com>>
 
 
-## 🎓 License
+## :mortar_board: License
 
 This project is licensed under MIT license. See [LICENSE.txt](LICENSE.txt) file for details.
