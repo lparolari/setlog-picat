@@ -139,6 +139,7 @@ conditions:
 doCommand(info, _) =>
     println("Current log level: " ++ log_mode().to_string),
     println("       Quiet mode: " ++ get_global(quiet_mode).to_string),
+    println("         Log file: " ++ get_log_file().to_string),
     true.
 
 % Show the help message.
@@ -157,7 +158,10 @@ doCommand(help, Args) =>
         println("    this is equivalent to `up 0`."), nl,
         println("log <mode>"), 
         println("    Set the log mode to <mode>."), 
-        println("    Available log mode: " ++ get_log_modes().to_string ++ "."), nl,
+        println("    Available log mode: " ++ get_log_modes().to_string ++ "."),
+        println("log file <file>"),
+        println("    Set log file to <file>."),
+        println("    Default is `stdout`."), nl,
         println("solve"),
         println("solve <formula>"),
         println("solve file <file>"),
@@ -185,14 +189,19 @@ doCommand(help, Args) =>
     end.
 
 % Manage log level. 
-doCommand(log, Args) =>
-    if Args.len() != 1 then wrongArgNumber(log, 1), fail end,
+doCommand(log, [N]) =>
     parse_term(Args.first().to_string(), Term, _Vars),
     if (membchk(Term, get_log_modes())) then
         log_mode(Term)
     else
         wrongArgValues(log, mode, get_log_modes())
     end.
+doCommand(log, [file, File]) =>
+    set_log_file(File).
+doCommand(log, [file | _]) => 
+    wrongArgNumber(log, 2).
+doCommand(log, _) => 
+    wrongArgNumber(log, 1).
 
 % Run the last issued executed command.
 doCommand(up, []) => 

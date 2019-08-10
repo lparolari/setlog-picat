@@ -7,9 +7,9 @@ module log_h.
 
 import global.
 
-log_d(X) => "D: ".print, X.println.
-log_e(X) => "E: ".print, X.println.
-log_i(X) => "I: ".print, X.println.
+log_d(X) => println(get_log_file_fd(), "D: " ++ X.to_string).
+log_e(X) => println(get_log_file_fd(), "E: " ++ X.to_string).
+log_i(X) => println(get_log_file_fd(), "I: " ++ X.to_string).
 
 log_d_v(X)   => log_d(X, v).
 log_d_vv(X)  => log_d(X, vv).
@@ -23,9 +23,9 @@ log_d(X, V) => true.
 
 log_mode() = X => 
     if has_global(log_mode) == 0 then
-        global(log_mode, none)
+        set_global(log_mode, none)
     end,
-    X = global(log_mode).
+    X = get_global(log_mode).
 
 % some defaults log_mode.
 log_mode(none) => log_mode([none]).
@@ -36,7 +36,7 @@ log_mode(all) => log_mode([v, vv, vvv]).
 
 % set the gloval log_mode.
 log_mode(Value) =>
-    global(log_mode, Value).
+    set_global(log_mode, Value).
 
 get_log_modes() = L => L = [none, v, vv, vvv, all].
 
@@ -45,3 +45,20 @@ get_log_modes() = L => L = [none, v, vv, vvv, all].
 % log vv   -> da definire
 % log vvv  -> tutto
 % loaf all -> tutto
+
+get_log_file_fd() = Value =>
+    if not is_global(log_file_fd) then 
+        set_global(log_file_fd, stdout)
+    end,
+    Value = get_global(log_file_fd).
+
+get_log_file() = Value => 
+    if not is_global(log_file) then
+        set_global(log_file, stdout),
+    end,
+    Value = get_global(log_file).
+set_log_file() => set_log_file(stdout).
+set_log_file(Value) =>
+    if Value !== stdout then FD = open(Value, write) end,
+    set_global(log_file, Value),
+    set_global(log_file_fd, FD).
