@@ -8,7 +8,7 @@
 module commands.
 
 import util.
-import solver.
+import solver2.
 import global.
 import log_h.
 import prompt.
@@ -261,10 +261,10 @@ solve(FormulaString) =>
             Map = new_map(),
             Map.put(vars_map, Vars),
             Map.put(terms_map, Term),
-            once top_level(Term, Map)
+            top_level(Term, Map)
         ),
-        _,
-        true
+        Exception,
+        println(Exception)
     ).
 
 
