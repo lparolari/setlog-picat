@@ -12,7 +12,10 @@ import log_h.
 
 new_lset() = [].
 new_lset(ListRest) = Lset => 
-    Lset = ListRest.
+    if (not list(ListRest)) 
+    then Lset = [ListRest]
+    else Lset = ListRest
+    end.
 new_lset(Head, Rest) = Lset =>
     if (not list(Head)) then Head := [Head] end,
     append(Head, Rest, Lset).
@@ -38,6 +41,8 @@ lset_rest([], R) => R = [].
 lset_rest([X], R), var(X) => R = X.
 lset_rest([X], R) => R = [].
 lset_rest([X|Xs], R) => lset_rest(Xs, R).
+lset_rest(X, R), var(X) => R = X.
+lset_rest(X, R) => R = [].
 
 
 %% lset_head(lset(X)) = R
@@ -52,7 +57,8 @@ lset_head([], R) => R = [].
 lset_head([X], R), var(X) => R = [].
 lset_head([X], R) => R = [X].
 lset_head([X|Xs], R) => lset_head(Xs, RR), R = [X] ++ RR.
-
+lset_head(X, R), var(X) => R = [].
+lset_head(X, R) => R = [X].
 
 
 %% is_lset(S)

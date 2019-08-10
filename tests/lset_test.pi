@@ -1,32 +1,99 @@
 module lset_test.
 
-%import lset.
+import assert.
+import lset.
 
 main => 
     all().
 
 all =>
-    test_rest_equal_not_a_val,
-    test_rest_equal_numeral,
-    test_rest_equal_variable.
+    lset_create_1_test, lset_create_2_test, lset_create_3_test, lset_create_4_test,
+    lset_head_1_test, lset_head_2_test, lset_head_3_test, lset_head_4_test, lset_head_5_test,
+    lset_rest_1_test, lset_rest_2_test, lset_rest_3_test, lset_rest_4_test. 
 
-test_rest_equal_not_a_val() ?=>
-    X = new_lset([1,2,3]),
-    Y = new_lset([4,5,6]),
-    X.is_rest_equal(Y),
-    println("Failed test_rest_equal_not_a_val").
-test_rest_equal_not_a_val() => println("Success test_rest_equal_not_a_val").
 
-test_rest_equal_numeral() ?=>
-    X = new_lset([1,2,3], 2),
-    Y = new_lset([4,5,6], 2),
-    X.is_rest_equal(Y),
-    println("Success test_rest_equal_numeral").
-test_rest_equal_numeral() => println("Failed test_rest_equal_numeral").
+% *** create test
 
-test_rest_equal_variable() ?=>
-    X = new_lset([1,2,3], T),
-    Y = new_lset([4,5,6], T),
-    X.is_rest_equal(Y),
-    println("Success test_rest_equal_variable").
-test_rest_equal_variable() => println("Failed test_rest_equal_variable").
+lset_create_1_test ?=>
+    A = new_assert("lset_create_1_test"),
+    S1 = new_lset([1,2], R1),
+    A.assert_equal([1,2|R1], S1).
+lset_create_1_test => A = new_assert("lset_create_1_test"), A.fail().
+
+lset_create_2_test ?=>
+    A = new_assert("lset_create_2_test"),
+    S1 = new_lset(1, R1),
+    A.assert_equal([1|R1], S1).
+lset_create_2_test => A = new_assert("lset_create_2_test"), A.fail().
+
+lset_create_3_test ?=>
+    A = new_assert("lset_create_3_test"),
+    S1 = new_lset(1),
+    A.assert_equal([1], S1).
+lset_create_3_test => A = new_assert("lset_create_3_test"), A.fail().
+
+lset_create_4_test ?=>
+    A = new_assert("lset_create_4_test"),
+    S1 = new_lset([1,2|R1]),
+    A.assert_equal([1,2|R1], S1).
+lset_create_4_test => A = new_assert("lset_create_4_test"), A.fail().
+
+
+% *** head test
+
+lset_head_1_test ?=> 
+    A = new_assert("lset_head_1_test"),
+    S1 = new_lset([1,2|R1]),
+    A.assert_equal([1,2], S1.lset_head()).
+lset_head_1_test => A = new_assert("lset_head_1_test"), A.fail().
+
+lset_head_2_test ?=> 
+    A = new_assert("lset_head_2_test"),
+    S1 = new_lset([1,2]),
+    A.assert_equal([1,2], S1.lset_head()).
+lset_head_2_test => A = new_assert("lset_head_2_test"), A.fail().
+
+lset_head_3_test ?=> 
+    A = new_assert("lset_head_3_test"),
+    S1 = new_lset([]),
+    A.assert_equal([], S1.lset_head()).
+lset_head_3_test => A = new_assert("lset_head_3_test"), A.fail().
+
+lset_head_4_test ?=> 
+    A = new_assert("lset_head_4_test"),
+    S1 = new_lset([X]),
+    A.assert_equal([], S1.lset_head()).
+lset_head_4_test => A = new_assert("lset_head_4_test"), A.fail().
+
+lset_head_5_test ?=> 
+    A = new_assert("lset_head_5_test"),
+    S1 = new_lset([1]),
+    A.assert_equal([1], S1.lset_head()).
+lset_head_5_test => A = new_assert("lset_head_5_test"), A.fail().
+
+
+% *** rest test
+
+lset_rest_1_test ?=> 
+    A = new_assert("lset_rest_1_test"),
+    S1 = new_lset([1,2|R1]),
+    A.assert_equal(R1, S1.lset_rest()).
+lset_rest_1_test => A = new_assert("lset_rest_1_test"), A.fail().
+
+lset_rest_2_test ?=> 
+    A = new_assert("lset_rest_2_test"),
+    S1 = new_lset([1]),
+    A.assert_equal([], S1.lset_rest()).
+lset_rest_2_test => A = new_assert("lset_rest_2_test"), A.fail().
+
+lset_rest_3_test ?=> 
+    A = new_assert("lset_rest_3_test"),
+    S1 = new_lset([X]),
+    A.assert_equal(X, S1.lset_rest()).
+lset_rest_3_test => A = new_assert("lset_rest_3_test"), A.fail().
+
+lset_rest_4_test ?=> 
+    A = new_assert("lset_rest_4_test"),
+    S1 = new_lset([]),
+    A.assert_equal([], S1.lset_rest()).
+lset_rest_4_test => A = new_assert("lset_rest_4_test"), A.fail().
