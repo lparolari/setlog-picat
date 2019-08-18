@@ -18,6 +18,7 @@ all =>
     equality_tests(),
     inequality_tests(),
     membership_tests(),
+    not_membership_tests(),
     union_tests(),
     true.
 
@@ -249,6 +250,69 @@ setlog_in3_1_test ?=>
     solve(F, FF),
     A.assert_equal([], FF).
 setlog_in3_1_test => A = new_assert("setlog_in3_1_test"), A.fail().
+
+
+% *********************************************************
+%    not membership
+% *********************************************************
+
+not_membership_tests() =>
+    println("*** NOT MEMBERSHIP TESTS ***"),
+    setlog_nin1_1_test,
+    setlog_nin2_1_test, setlog_nin2_2_test, setlog_nin2_3_test, setlog_nin2_4_test,
+    setlog_nin3_1_test,
+    nl, nl.
+
+% ---------------------------------------------------------
+% *** nin_1
+
+setlog_nin1_1_test ?=>
+    A = new_assert("setlog_nin1_1_test"),
+    F = [ $nin( X, [] ) ],
+    solve(F, FF),
+    A.assert_equal([], FF).
+setlog_nin1_1_test => A = new_assert("setlog_nin1_1_test"), A.fail().
+
+% ---------------------------------------------------------
+% *** nin_2
+
+setlog_nin2_1_test ?=>
+    A = new_assert("setlog_nin2_1_test"),
+    F = [ $nin( 2, [1,2,3|X] ) ],
+    solve(F, FF),
+    A.fail().
+setlog_nin2_1_test => A = new_assert("setlog_nin2_1_test"), A.assert_fail().
+
+setlog_nin2_2_test ?=>
+    A = new_assert("setlog_nin2_2_test"),
+    F = [ $nin( 5, [1,2,3|X] ) ],
+    solve(F, FF),
+    A.assert_equal([$nin(5, X)], FF).
+setlog_nin2_2_test => A = new_assert("setlog_nin2_2_test"), A.assert_fail().
+
+setlog_nin2_3_test ?=>
+    A = new_assert("setlog_nin2_3_test"),
+    F = [ $nin( X, [1,2,3|X] ) ],
+    solve(F, FF),
+    A.assert_equal([$neq(X,1), $neq(X,2), $neq(X,3)], FF).
+setlog_nin2_3_test => A = new_assert("setlog_nin2_3_test"), A.assert_fail().
+
+setlog_nin2_4_test ?=>
+    A = new_assert("setlog_nin2_4_test"),
+    F = [ $nin( Y, [1,2,3|X] ) ],
+    solve(F, FF),
+    A.assert_equal([$neq(Y,1), $neq(Y,2), $neq(Y,3), $nin(Y,X)], FF).
+setlog_nin2_4_test => A = new_assert("setlog_nin2_4_test"), A.fail().
+
+% ---------------------------------------------------------
+% *** nin3
+
+setlog_nin3_1_test ?=>
+    A = new_assert("setlog_nin3_1_test"),
+    F = [ $nin( [X,2,3|Y], X ) ],
+    solve(F, FF),
+    A.assert_equal([], FF).
+setlog_nin3_1_test => A = new_assert("setlog_nin3_1_test"), A.fail().
 
 
 % *********************************************************
