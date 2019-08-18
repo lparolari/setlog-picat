@@ -71,18 +71,10 @@ introduce =>
 
 obeyCommands() ?=>
     while(true)
-        [Command | Arguments] = readCommandLine(),
-        if membchk(Command, [copying,
-                            warranty,
-                            help,
-                            quit,
-                            info,
-                            solve, 
-                            up, 
-                            log,
-                            quiet]) then
+        readCommandLine([Command | Arguments]),
+        if membchk(Command, getKnownCommands()) then
             doCommand(Command, Arguments),
-            if Command !== up then
+            if not membchk(Command, getNoHistoryCommands()) then
                 push_last_command(Command, Arguments)    
             end
         else 
@@ -103,6 +95,9 @@ doCommand(Command) => doCommand(Command, _).
 %
 % @desc Causes the execution of the command Command
 %   with arguments Args.
+
+% Do nothing.
+doCommand(nop, _) => true.
 
 % Quit the system.
 doCommand(quit, _) =>
@@ -254,19 +249,23 @@ doCommand(quiet, Args) =>
 
 %% solve(+FormulaString) is det
 
-solve(FormulaString) =>
-    catch(
-        (
-            parse_term(FormulaString, Term, Vars),
-            Map = new_map(),
-            Map.put(vars_map, Vars),
-            Map.put(terms_map, Term),
-            top_level(Term, Map)
-        ),
-        Exception,
-        println(Exception)
-    ).
-
+solve(FormulaString) ?=>
+    parse_term(FormulaString, Term, Vars),
+    Map = new_map(),
+    Map.put(vars_map, Vars),
+    Map.put(terms_map, Term),
+    top_level(Term, Map),
+    nl,
+    A = confirm("Another solution?"),
+    if A == 1 then fail end.
+    %catch(
+    %    (
+    %        
+    %    ),
+    %    Exception,
+    %    println(Exception)
+    %).
+solve(_) => println("no!").
 
 %% readCommandLine() = CommandArgs is det
 %
@@ -282,13 +281,14 @@ solve(FormulaString) =>
 %   then, on exit,
 %     L = ['load', 'test/mergesort']
 
-readCommandLine() = CommandArgs =>
+readCommandLine(CommandArgs) ?=>
     print("log> "),
     Line := read_line(),
     Line := lstrip(Line),
     Line := rstrip(Line),
     Words = split(Line),
     CommandArgs = [Word.to_atom() : Word in Words].
+readCommandLine(CommandArgs) ?=> CommandArgs = [nop].
 
 
 %% push_last_command(Command, Args) is det
@@ -353,3 +353,26 @@ wrongArgNumber(Command, N) =>
 wrongArgValues(Command, Arg, Choices) =>
     println("Wrong argument value for command '" ++ Command.to_string ++ "' with arg '" ++ Arg.to_string ++ "'."), 
     if Choices.len() > 0 then   println("Choose one of: " ++ Choices.to_string ++ ".")   end.
+
+
+%% getKnownCommands() = List
+%
+% @return All known command by CLI.
+getKnownCommands = List => 
+    List = [copying,
+            warranty,
+            help,
+            quit,
+            info,
+            solve, 
+            up, 
+            log,
+            quiet,
+            nop].
+
+
+%% getNoHistoryCommands() = List
+%
+% @return All commands that should not be pushed in the history.
+getNoHistoryCommands = List =>
+    List = [up, nop].
