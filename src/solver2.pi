@@ -4,7 +4,10 @@ import prompt.
 import lset.
 import log_h.
 
-top_level(C, _) => solve(C, _).
+top_level(C, Map) => 
+    solve(C, Res),
+    println("Vars: " ++ Map.get(vars_map).to_string),
+    println("Constraints: " ++ Res.to_string).
 
 %% solve(C, CC) is det
 
@@ -18,7 +21,6 @@ solve(C, CC) =>
         log_d_vvv("solve :: foreach : CN2=" ++ CN.to_string)
     end,
     CN := CN.flatten(),
-    
     echo("--- " ++ C.to_string), echo("==> " ++ CN.to_string), echo(" "),
 
     if C == CN 
@@ -53,24 +55,27 @@ eq(X, Y, R), X == Y =>                                             % 1
     log_d_vv("eq :: eq_1"),
     R = []. 
 
-eq(T, X, R), nonvar(T), var(X) =>                                  % 2
+eq(T, X, R), 
+        nonvar(T), var(X) =>                                       % 2
     log_d_vv("eq :: eq_2"),
     R = [ $eq(X, T) ].
 
 eq(A, S, R), 
         S.is_lset(),
-        A == S.lset_rest(),
+        var(A), A == S.lset_rest(),
         not occur(A, S.lset_head()) =>                             % 3
     log_d_vv("eq :: eq_3"),
     SN = new_lset(S.lset_head(), _),
     R = [ $eq(A, SN) ]. 
 
 eq(X, T, _),
+        var(X),
         occur(X, T) =>                                             % 4
     log_d_vv("eq :: eq_4"),
     fail. 
 
-eq(X, T, R), var(X) =>                                             % 5
+eq(X, T, R), 
+        var(X) =>                                                  % 5
     log_d_vv("eq :: eq_5"),
     X = T, R = [].
 
@@ -182,7 +187,7 @@ eq(T1, T2, R),
 % ****** inequality
 
 neq(T1, T2, R),
-        ground(T1), ground(T1),
+        ground(T1), ground(T2),
         T1 !== T2 =>  % ground
     log_d_vv("neq :: neq_ground"),
     R = [].
@@ -247,17 +252,22 @@ insl(X, S, R) =>
 
 contains(S, X, R),
         S.is_lset(),
-        S.is_emptyset() => % 1
+        S.is_emptyset() =>                                         % 1
     log_d_vv("contains :: cont_1"),
     fail.
 
 contains(S@[Y|A], X, R),
-        S.is_lset() => % 2
-    log_d_vv("contains :: cont_2"),
-    R = [ $or($eq(X, Y), $contains(A, X)) ].
+        S.is_lset() ?=>                                            % 2a
+    log_d_vv("contains :: cont_2a"),
+    R = [ $eq(X, Y) ].
+
+contains(S@[Y|A], X, R),
+        S.is_lset() =>                                             % 2b
+    log_d_vv("contains :: cont_2b"),
+    R = [ $contains(A, X) ].
 
 contains(A, X, R),
-        => % 3
+        var(A) =>                                                  % 3
     log_d_vv("contains :: cont_3"),
     YN = new_lset(X, N),
     R = [ $eq(A, YN) ].
@@ -278,13 +288,15 @@ union(S1, S2, S3, R),
 
 union(S1, S2, V, R),
         S1.is_emptyset(),
-        S2.is_lset(), var(V) =>                                            % 3
+        S2.is_lset(), 
+        var(V) =>                                                  % 3
     log_d_vv("union :: un_3"),
     R = [$eq(V, S2)].
 
 union(S1, S2, V, R),
         S2.is_emptyset(),
-        S1.is_lset(), var(V) =>                                            % 4
+        S1.is_lset(), 
+        var(V) =>                                                 % 4
     log_d_vv("union :: un_4"),
     R = [$eq(V, S1)].
 
@@ -381,21 +393,27 @@ nin(X, S, R),
     log_d_vv("nin :: nin_1"),
     R = [].  % sic.
 
-nin(X, S@[Y|Ys], R),
+nin(X, S@[Y|A], R),
         S.is_lset() =>                                             % 2
     log_d_vv("nin :: nin_2"),
-    R = [ $neq(X,Y), $nin(X,Ys) ].
+    R = [ $neq(X,Y), $nin(X,A) ].
 
-nin(X, Y, R),
-        occur(Y, X) =>                                       % 3
+nin(X, A, R),
+        var(A),
+        occur(A, X) =>                                             % 3
     log_d_vv("nin :: nin_3"),
     R = [].  % sic.
 
-nin(X, Y, R),
-        not occur(Y, X) =>                                   % def
-    fail,
+nin(A, X, R),
+        var(A), ground(X) =>                                        % def_rev
+    log_d_vv("nin :: nin_def_rev"),
+    R = [ $nin(X, A) ].
+
+nin(X, A, R),
+        var(A),
+        not occur(A, X) =>                                         % def
     log_d_vv("nin :: nin_def"),
-    R = [ $nin(X, Y) ].
+    R = [ $nin(X,A) ].
 
 
 
@@ -415,11 +433,9 @@ or([_T|Tr], R) =>
 
 occur(X, Y), var(X) => membchk(X, vars(Y)).
 
-foreachnd_slice(List, Elem, Slice) => 
-    foreachnd_slice(List, Elem, Slice, 1, List.len()).
 
-foreachnd_slice(List, Elem, Slice, I, Ie), I <= Ie ?=>
-    [Elem|_] = slice(List, I, I),
-    Slice = slice(List, 1, I-1) ++ slice(List, I+1, Ie).
-foreachnd_slice(List, Elem, Slice, I, Ie), I <= Ie ?=>
-    foreachnd_slice(List, Elem, Slice, I + 1, Ie).
+foreachnd_slice([X|Xs], Elem, Slice) ?=>
+    X = Elem, Xs = Slice.
+foreachnd_slice([X|Xs], Elem, Slice) =>
+    foreachnd_slice(Xs, Elem, SliceRight),
+    Slice = [X|SliceRight].
