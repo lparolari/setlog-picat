@@ -18,7 +18,7 @@ main =>
     catch(
         (init, introduce, obeyCommands, halt),
         Exception,
-        (fatal(Exception), obeyCommands)
+        (fatal(Exception), main)
     ).
 
 
@@ -141,10 +141,11 @@ doCommand(info, _) =>
 doCommand(help, Args) =>
     if Args.len() == 0 then
         println("Setlog provides you with the following commands:"), nl,
+        println("help"),
         println("help <what>"),
         println("    Show help for <what>."),
         println("    The argument describes the topic to give help for."),
-        println("    If <what> is empty, this message is shown."), nl,
+        println("    <what> can be one of [solve]"), nl,
         println("info"),
         println("    Display the current interpreter status."), nl,
         println("up <n>"), 
@@ -160,8 +161,9 @@ doCommand(help, Args) =>
         println("solve"),
         println("solve <formula>"),
         println("solve file <file>"),
-        println("    Solve the formula, respectively, typed in stdin, given as argument, or read from file"),
-        println("    using the setlog solver."), nl,
+        println("    Solve the formula, respectively, typed in stdin,"),
+        println("    given as argument of this command, or read from the"),
+        println("    first line of file <file> using the setlog solver."), nl,
         println("quiet <mode>"),
         println("    Set the quit mode execution."),
         println("    Available mode: [true, false]. Default is true."), nl
@@ -172,11 +174,6 @@ doCommand(help, Args) =>
         println("    solve"),
         println("    solve <formula>"),
         println("    solve file <file>"), nl,
-        println("    Syntax for a formula is given with a not-so-formal context free grammar."), nl,
-        println("    {log} => FORMULA."), nl,
-        println("    FORMULA ::= array(TERM, TERM...)"),
-        println("    TERM ::= eq(TERM, TERM) | neq(TERM, TERM) | ..."), nl,
-        println("    Note that array(...) is a handy name for [...]."), nl, 
         println("DESCRIPTION"),
         println("    Solve a given formula with the setlog solver.")
     else
@@ -184,10 +181,10 @@ doCommand(help, Args) =>
     end.
 
 % Manage log level. 
-doCommand(log, [N]) =>
-    parse_term(Args.first().to_string(), Term, _Vars),
-    if (membchk(Term, get_log_modes())) then
-        log_mode(Term)
+doCommand(log, [Mode]) =>
+    %parse_term(Args.first().to_string(), Term, _Vars),
+    if (membchk(Mode, get_log_modes())) then
+        log_mode(Mode)
     else
         wrongArgValues(log, mode, get_log_modes())
     end.
@@ -219,7 +216,7 @@ doCommand(solve, [file, F]) =>
     S = read_line(FD),
     %while(S != end_of_file)
         print("{log} => "), print(S), nl,
-        solve(S),
+        doSolve(S),
     %    S := end_of_file %S := read_line(FD)
     %end,
     close(FD).
@@ -230,11 +227,11 @@ doCommand(solve, Args@[_|_]) =>
         S := S ++ Atom.to_string
     end,
     println("{log} => " ++ S.to_string),
-    solve(S).
+    doSolve(S).
 
 doCommand(solve, _) =>
     print("{log} => "), S = read_line(), nl,
-    solve(S).
+    doSolve(S).
 
 % Set quiet mode.
 doCommand(quiet, Args) =>
@@ -247,25 +244,20 @@ doCommand(quiet, Args) =>
     end.
 
 
-%% solve(+FormulaString) is det
+%% doSolve(+FormulaString) is det
+%
+% @desc Issue the solver with the given formula and allow to show
+%  all solutions.
 
-solve(FormulaString) ?=>
+doSolve(FormulaString) ?=>
     parse_term(FormulaString, Term, Vars),
-    Map = new_map(),
-    Map.put(vars_map, Vars),
-    Map.put(terms_map, Term),
-    top_level(Term, Map),
+    solve(Term, Res),
+    println("Vars: " ++ Vars.to_string),
+    println("Constraints: " ++ Res.to_string),
     nl,
     A = confirm("Another solution?"),
     if A == 1 then fail end.
-    %catch(
-    %    (
-    %        
-    %    ),
-    %    Exception,
-    %    println(Exception)
-    %).
-solve(_) => println("no!").
+doSolve(_) => println("no!").
 
 %% readCommandLine() = CommandArgs is det
 %
