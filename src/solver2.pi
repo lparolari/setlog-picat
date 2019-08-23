@@ -4,10 +4,6 @@ import prompt.
 import lset.
 import log_h.
 
-top_level(C, Map) => 
-    solve(C, Res),
-    println("Vars: " ++ Map.get(vars_map).to_string),
-    println("Constraints: " ++ Res.to_string).
 
 %% solve(C, CC) is det
 
@@ -296,14 +292,14 @@ union(S1, S2, V, R),
 union(S1, S2, V, R),
         S2.is_emptyset(),
         S1.is_lset(), 
-        var(V) =>                                                 % 4
+        var(V) =>                                                  % 4
     log_d_vv("union :: un_4"),
     R = [$eq(V, S1)].
 
 union(S@[T|C], A, B, R),
         S.is_lset(),
         %S2.is_lset(), 
-        var(B) ?=>                                           % 5a
+        var(B) ?=>                                                 % 5a
     log_d_vv("union :: un_5a"),
     R = [ 
         $nin(T, A), 
@@ -315,7 +311,7 @@ union(S@[T|C], A, B, R),
 union(S@[T|C], A, B, R),
         S.is_lset(),
         %S2.is_lset(), 
-        var(B) =>                                            % 5b
+        var(B) =>                                                  % 5b
     log_d_vv("union :: un_5b"),
     R = [ 
         $nin(T, A), 
@@ -327,7 +323,7 @@ union(S@[T|C], A, B, R),
 union(A, S@[T|C], B, R),
         S.is_lset(),
         %S2.is_lset(), 
-        var(B) ?=>                                            % 6a
+        var(B) ?=>                                                 % 6a
     log_d_vv("union :: un_6a"),
     R = [ 
         $nin(T, A), 
@@ -339,7 +335,7 @@ union(A, S@[T|C], B, R),
 union(A, S@[T|C], B, R),
         S.is_lset(),
         %S2.is_lset(), 
-        var(B) =>                                            % 6b
+        var(B) =>                                                  % 6b
     log_d_vv("union :: un_6b"),
     R = [ 
         $nin(T, A), 
@@ -351,7 +347,7 @@ union(A, S@[T|C], B, R),
 union(S1, S2, S3@[Z|Zs], R),
         S1.is_lset(),
         S2.is_lset(),
-        S3.is_lset() ?=>                                            % 7a
+        S3.is_lset() ?=>                                           % 7a
     log_d_vv("union :: un_7a"),
     R1 = [ $eq(S1,[Z|N1]), $union(N1,B2,N) ],
     R4 = [ $eq(S3,[Z|N]) ],
@@ -361,7 +357,7 @@ union(S1, S2, S3@[Z|Zs], R),
 union(S1, S2, S3@[Z|Zs], R),
         S1.is_lset(),
         S2.is_lset(),
-        S3.is_lset() ?=>                                            % 7b
+        S3.is_lset() ?=>                                           % 7b
     log_d_vv("union :: un_7b"),
     R2 = [ $eq(S2,[Z|N1]), $union(S1,N1,N) ],
     R4 = [ $eq(S3,[Z|N]) ],
@@ -380,7 +376,7 @@ union(S1, S2, S3@[Z|Zs], R),
 
 union(S1, S2, S3, R),
         var(S1), var(S2), var(S3),
-        S1 !== S2 =>                                            % irr
+        S1 !== S2 =>                                               % irr
     log_d_vv("union :: un_irr"),
     R = [ $union(S1, S2, S3) ].
 

@@ -31,7 +31,8 @@ confirm(Q) = A =>
 
 %% echo(P) is det
 %
-% @desc Print the phrase P to the standard output if echo is enabled (i.e., the global prompt_echo_enabled is true).
+% @desc Print the phrase P to the standard output if echo is 
+%  enabled (i.e., the global prompt_echo_enabled is true).
 
 echo(P), 
         is_global(quiet_mode), 
