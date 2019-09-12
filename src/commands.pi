@@ -41,7 +41,7 @@ fatal(Exception) =>
 %% init() is det
 
 init => 
-    log_mode([v,vv,vvv]),
+    set_log_mode([v,vv,vvv]),
     global(last_command_idx, 0), 
     global(last_commands, new_map()),
     global(last_args, new_map()),
@@ -132,7 +132,7 @@ conditions:
 
 % Show informations about the system.
 doCommand(info, _) =>
-    println("Current log level: " ++ log_mode().to_string),
+    println("Current log level: " ++ get_log_mode().to_string),
     println("       Quiet mode: " ++ get_global(quiet_mode).to_string),
     println("         Log file: " ++ get_log_file().to_string),
     true.
@@ -148,6 +148,8 @@ doCommand(help, Args) =>
         println("    <what> can be one of [solve]"), nl,
         println("info"),
         println("    Display the current interpreter status."), nl,
+        println("up history"),
+        println("    Print the whole commands history."),
         println("up <n>"), 
         println("    Redo the last <n> command issued."),
         println("    If <n> is empty the last command is issued,"),
@@ -200,7 +202,7 @@ doCommand(up, []) =>
     [Command | Args] = get_last_command(), 
     doCommand(Command, Args).
 doCommand(up, [history]) =>
-    I = global(last_command_idx),
+    I = global(last_command_idx) - 1,
     while (I >= 0)
         print(I), print(": "), println(get_last_command(I)),
         I := I - 1
@@ -308,7 +310,7 @@ get_last_command(N) = CommandArgs, N >= 0 =>
     if CM.has_key(I), AM.has_key(I) then
         CommandArgs = [CM.get(I) | AM.get(I)]
     else
-        CommandArgs = [skip | []]
+        CommandArgs = [nop | []]
     end.
 
 

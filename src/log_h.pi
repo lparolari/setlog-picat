@@ -11,40 +11,48 @@ log_d(X) => println(get_log_file_fd(), "D: " ++ X.to_string).
 log_e(X) => println(get_log_file_fd(), "E: " ++ X.to_string).
 log_i(X) => println(get_log_file_fd(), "I: " ++ X.to_string).
 
+% debug logs with verbosity.
+log_d(X, V), membchk(V, get_log_mode()) => log_d(X).
+log_d(X, V) => true.
+
+% error logs with verbosity.
+log_e(X, V), membchk(V, get_log_mode()) => log_e(X).
+log_e(X, V) => true.
+
+% info logs with verbosity.
+log_i(X, V), membchk(V, get_log_mode()) => log_i(X).
+log_i(X, V), membchk(all, get_log_mode()) => log_i(X).
+log_i(X, V) => true.
+
+% shortcuts for verbosity modes.
 log_d_v(X)   => log_d(X, v).
 log_d_vv(X)  => log_d(X, vv).
 log_d_vvv(X) => log_d(X, vvv).
 
+% shortcut for "here" in vvv mode.
 log_here() => log_d_vvv("here").
 
-log_d(X, V), membchk(V, log_mode()) => log_d(X).
-log_d(X, V), membchk(all, log_mode()) => log_d(X).
-log_d(X, V) => true.
+% set a default log group modes.
+log_mode(none) => set_log_mode([]).
+log_mode(v) => set_log_mode([v]).
+log_mode(vv) => set_log_mode([v, vv]).
+log_mode(vvv) => set_log_mode([v, vv, vvv]).
+log_mode(all) => set_log_mode([v, vv, vvv]).
 
-log_mode() = X => 
+% set log mode.
+set_log_mode(Value) =>
+    set_global(log_mode, Value).
+
+% return current log mode.
+get_log_mode() = X => 
     if has_global(log_mode) == 0 then
         set_global(log_mode, none)
     end,
     X = get_global(log_mode).
 
-% some defaults log_mode.
-log_mode(none) => log_mode([none]).
-log_mode(v) => log_mode([v]).
-log_mode(vv) => log_mode([v, vv]).
-log_mode(vvv) => log_mode([v, vv, vvv]). 
-log_mode(all) => log_mode([v, vv, vvv]). 
-
-% set the gloval log_mode.
-log_mode(Value) =>
-    set_global(log_mode, Value).
-
+% return default log modes.
 get_log_modes() = L => L = [none, v, vv, vvv, all].
 
-% log none -> nessun log
-% log v    -> solo entrata nella funzione
-% log vv   -> da definire
-% log vvv  -> tutto
-% loaf all -> tutto
 
 get_log_file_fd() = Value =>
     if not is_global(log_file_fd) then 
