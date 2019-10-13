@@ -1,0 +1,5 @@
+import commands.
+
+go => main.
+main =>
+    commands.main().

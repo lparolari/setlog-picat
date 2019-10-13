@@ -1,0 +1,464 @@
+module solver2.
+
+import prompt.
+import lset.
+import log_h.
+
+
+%% solve(C, CC) is det
+
+solve(C, CC) =>
+    %set_quiet(false), log_mode(all),
+    CN = [],
+    foreach (T in C)
+        sat(T, C1), 
+        log_d_vvv("solve :: foreach : CN1=" ++ CN.to_string),
+        CN := CN ++ C1,
+        log_d_vvv("solve :: foreach : CN2=" ++ CN.to_string)
+    end,
+    CN := CN.flatten(),
+    echo("--- " ++ C.to_string), echo("==> " ++ CN.to_string), echo(" "),
+
+    if C == CN 
+    then CC = CN 
+    else solve(CN, CC)
+    end.
+
+
+%% sat(F, FF) is det
+
+sat(F, FF), F == [] => FF = [].
+sat(F, FF) => rule(F, FF).
+
+
+%% rule(F, R) is det
+
+rule(eq(T1, T2), R)  => eq(T1, T2, R).
+rule(neq(T1, T2), R) => neq(T1, T2, R).
+rule(or(T1, T2), R)  => or(T1, T2, R).
+rule(or(L), R)       => or(L, R).
+rule(insl(X, S), R)  => insl(X, S, R).
+rule(nin(X, S), R)   => nin(X, S, R).
+rule(contains(S, X), R)    => contains(S, X, R).
+rule(un(S1, S2, S3), R) => union(S1, S2, S3, R).
+%rule(disj(S1, S2), R)      => disj(S1, S2, R).
+%rule(subset(S1, S2), R)    => subset(S1, S2, R).
+
+
+% ****** equality
+
+eq(X, Y, R), X == Y =>                                             % 1
+    log_d_vv("eq :: eq_1"),
+    R = []. 
+
+eq(T, X, R), 
+        nonvar(T), var(X) =>                                       % 2
+    log_d_vv("eq :: eq_2"),
+    R = [ $eq(X, T) ].
+
+eq(A, S, R), 
+        S.is_lset(),
+        var(A), A == S.lset_rest(),
+        not occur(A, S.lset_head()) =>                             % 3
+    log_d_vv("eq :: eq_3"),
+    SN = new_lset(S.lset_head(), _),
+    R = [ $eq(A, SN) ]. 
+
+eq(X, T, _),
+        var(X),
+        occur(X, T) =>                                             % 4
+    log_d_vv("eq :: eq_4"),
+    fail. 
+
+eq(X, T, R), 
+        var(X) =>                                                  % 5
+    log_d_vv("eq :: eq_5"),
+    X = T, R = [].
+
+eq(F, G, _),
+        F.struct(), G.struct(),
+        F.name() !== G.name() =>                                   % 6
+    log_d_vv("eq :: eq_6"),
+    fail.
+
+eq(T1@[X|Xs], T2, R), 
+        T1.is_lset(), T2.is_lset(),
+        T1.lset_rest() == T2.lset_rest() ?=>                       % 7a
+    log_d_vv("eq :: eq_7a"),
+
+    YH = T2.lset_head(),                   % head of T2.
+    foreachnd_slice(YH, YElem, YSlice),    % get the j-th element nondet.
+    YRest = T2.lset_rest(),                % rest of T2.
+    YSetSliced = new_lset(YSlice, YRest),  % build T2 without j-th elem.
+
+    R1 = [ $eq(X, YElem) ],
+    R2 = [ $eq(Xs, YSetSliced) ],
+
+    R = R1 ++ R2.
+
+eq(T1@[X|_], T2, R), 
+        T1.is_lset(), T2.is_lset(),
+        T1.lset_rest() == T2.lset_rest() ?=>                       % 7b
+    log_d_vv("eq :: eq_7b"),
+
+    YH = T2.lset_head(),                   % head of T2.
+    foreachnd_slice(YH, YElem, YSlice),    % get the j-th element nondet.
+    YRest = T2.lset_rest(),                % rest of T2.
+    YSetSliced = new_lset(YSlice, YRest),  % build T2 without j-th elem.
+
+    R1 = [ $eq(X, YElem) ],
+    R2 = [ $eq(T1, YSetSliced) ],
+
+    R = R1 ++ R2.
+
+eq(T1@[X|Xs], T2, R),
+        T1.is_lset(), T2.is_lset(),
+        T1.lset_rest() == T2.lset_rest() ?=>                       % 7c
+    log_d_vv("eq :: eq_7c"),
+
+    % no slice for T2, only Y elem.
+    YH = lset_head(T2),              % head of T2.
+    foreachnd_slice(YH, YElem, _),   % get the j-th element nondet.
+
+    R1 = [ $eq(X, YElem) ],
+    R2 = [ $eq(Xs, T2) ],
+
+    R = R1 ++ R2.
+
+eq(T1@[X|Xs], T2, R),
+        T1.is_lset(), T2.is_lset(),
+        T1.lset_rest() == T2.lset_rest() =>                        % 7d
+    log_d_vv("eq :: eq_7d"),
+
+    XRest = lset_rest(T1),
+
+    XHeadSlice = lset_head(Xs),
+    XSetNew = new_lset(XHeadSlice, N),
+
+    YHead = T2.lset_head(),
+    YSetNew = new_lset(YHead, N),
+
+    R1 = [ $eq(XRest, [X|N]) ],
+    R2 = [ $eq(XSetNew, YSetNew) ],
+
+    R = R1 ++ R2.
+
+eq(T1@[X|Xs], T2@[Y|Ys], R),
+        T1.is_lset(), T2.is_lset() ?=>                             % 8a
+    log_d_vv("eq :: eq_8a"),
+    R = [ 
+        $eq(X,Y), 
+        $eq(Xs, Ys) 
+    ].
+
+eq(T1@[X|_], T2@[Y|Ys], R),
+        T1.is_lset(), T2.is_lset() ?=>                             % 8b
+    log_d_vv("eq :: eq_8b"),
+    R = [ 
+        $eq(X,Y), 
+        $eq(T1, Ys) 
+    ].
+
+eq(T1@[X|Xs], T2@[Y|_], R),
+        T1.is_lset(), T2.is_lset() ?=>                             % 8c
+    log_d_vv("eq :: eq_8c"),
+    R = [ 
+        $eq(X,Y), 
+        $eq(Xs, T2) 
+    ].
+
+eq(T1@[X|Xs], T2@[Y|Ys], R),
+        T1.is_lset(), T2.is_lset() =>                              % 8d
+    log_d_vv("eq :: eq_8d"),
+    R = [  
+        $eq( Xs,  [Y|N] ),  
+        $eq( [X|N],  Ys ) 
+    ].
+
+eq(T1, T2, R),
+        T1.struct(), T2.struct(),
+        T1.name() == T2.name(),
+        T1.arity() == T2.arity() =>                                % 9
+    log_d_vv("eq :: eq_9"),
+    RR = [],
+    foreach(I in 1..T1.arity())
+        RR := RR ++ [  $eq( T1[I], T2[I] )  ]
+    end,
+    R = RR.
+
+% TODO add irreducible
+
+
+% ****** inequality
+
+neq(T1, T2, R),
+        ground(T1), ground(T2),
+        T1 !== T2 =>                                               % ground
+    log_d_vv("neq :: neq_ground"),
+    % removes the constraint from the constraint store
+    %  because this constraint can be solved.
+    R = [].
+
+neq(T1, T2, R),
+        T1 == T2 =>                                                % 1
+    log_d_vv("neq :: neq_1"),
+    fail.  % sic.
+
+neq(T, X, R),
+        nonvar(T), var(X) =>                                       % 2
+    log_d_vv("neq :: neq_2"),
+    R = [ $neq(X, T) ].
+
+neq(X, S, R), 
+        S.is_lset(),
+        X == S.lset_rest(),
+        not occur(X, S.lset_head()) =>                             % 3
+    log_d_vv("neq :: neq_3"),
+    RR = [],
+    foreach (T in S.lset_head)
+        RR := RR ++ [$nin(T, X)]
+    end,
+    R = [ $or(RR) ].
+
+neq(X, T, R),
+        occur(X, T) =>                                             % 4
+    log_d_vv("neq :: neq_4"),
+    R = [].
+
+neq([T1|A], [T2|B], R) ?=>                                         % 5a
+    log_d_vv("neq :: neq_5a"),
+    R = [ 
+        $inls(N, [T1|A]),
+        $nin(N, [T2|B])
+    ].
+
+neq([T1|A], [T2|B], R) ?=>                                         % 5b
+    log_d_vv("neq :: neq_5a"),
+    R = [ 
+        $nin(N, [T1|A]), 
+        $insl(N, [T2|B])
+    ].
+
+neq(F, G, R),
+        F.struct(), G.struct(),
+        F.name() !== G.name() =>                                   % 6
+    log_d_vv("neq :: neq_6"),
+    R = [].
+
+neq(F, G, R),
+        F.struct(), G.struct(),
+        F.arity() !== G.arity() =>                                 % 7
+    log_d_vv("neq :: neq_7"),
+    R = [].
+
+neq(X, T, R), 
+        not occur(X, T) =>                                         % irr
+    log_d_vv("neq :: neq_irr"),
+    R = [ $neq(X, T) ].
+
+
+% ****** membership
+
+insl(X, S, R) => 
+    log_d_vv("insl :: -> contains"),
+    contains(S, X, R).
+
+contains(S, X, R),
+        S.is_lset(),
+        S.is_emptyset() =>                                         % 1
+    log_d_vv("contains :: cont_1"),
+    fail.
+
+contains(S@[Y|A], X, R),
+        S.is_lset() ?=>                                            % 2a
+    log_d_vv("contains :: cont_2a"),
+    R = [ $eq(X, Y) ].
+
+contains(S@[Y|A], X, R),
+        S.is_lset() =>                                             % 2b
+    log_d_vv("contains :: cont_2b"),
+    R = [ $contains(A, X) ].
+
+contains(A, X, R),
+        var(A) =>                                                  % 3
+    log_d_vv("contains :: cont_3"),
+    YN = new_lset(X, N),
+    R = [ $eq(A, YN) ].
+
+
+% ****** union
+
+union(S1, S2, S3, R), 
+        %S1.is_lset(), S2.is_lset(), S3.is_lset(),
+        S1 == S2 =>                                                % 1
+    log_d_vv("union :: un_1"),
+    R = [ $eq(S1, S3) ].
+
+union(S1, S2, S3, R),
+        %S1.is_lset(), S2.is_lset(),
+        S3.is_emptyset() =>                                        % 2
+    log_d_vv("union :: un_2"),
+    R = [
+        $eq(S1, S3), 
+        $eq(S2, S3)
+    ].
+
+union(E, A, B, R),
+        E.is_emptyset(),
+        %A.is_lset(), 
+        var(B) =>                                                  % 3
+    log_d_vv("union :: un_3"),
+    R = [ $eq(B, A) ].
+
+union(A, E, B, R),
+        E.is_emptyset(),
+        %A.is_lset(), 
+        var(B) =>                                                  % 4
+    log_d_vv("union :: un_4"),
+    R = [ $eq(B, A) ].
+
+union(S@[T|C], A, B, R),
+        S.is_lset(),
+        var(B) ?=>                                                 % 5a
+    log_d_vv("union :: un_5a"),
+    R = [ 
+        $nin(T, A), 
+        $un(N1, A, N),
+        $eq([T|C], [T|N1]), 
+        $eq(B, [T|N])
+    ].
+
+union(S@[T|C], A, B, R),
+        S.is_lset(),
+        var(B) =>                                                  % 5b
+    log_d_vv("union :: un_5b"),
+    R = [ 
+        $eq(A, [T|N2]),
+        $un(N1, N2, N),
+        $eq([T|C], [T|N1]), 
+        $eq(B, [T|N])
+    ].
+
+union(A, S@[T|C], B, R),
+        S.is_lset(),
+        var(B) ?=>                                                 % 6a
+    log_d_vv("union :: un_6a"),
+    R = [ 
+        $nin(T, A), 
+        $un(N1, A, N),
+        $eq([T|C], [T|N1]), 
+        $eq(B, [T|N])
+    ].
+
+union(A, S@[T|C], B, R),
+        S.is_lset(),
+        var(B) =>                                                  % 6b
+    log_d_vv("union :: un_6b"),
+    R = [ 
+        $eq(A, [T|N2]),
+        $un(N1, N2, N),
+        $eq([T|C], [T|N1]), 
+        $eq(B, [T|N])
+    ].
+
+union(A, B, S@[T|C], R),
+        %A.is_lset(),
+        %B.is_lset(),
+        S.is_lset() ?=>                                           % 7a
+    log_d_vv("union :: un_7a"),
+    R1 = [ 
+        $eq(A, [T|N1]), 
+        $un(N1, B2, N)
+    ],
+    R4 = [ $eq([T|C], [T|N]) ],
+    
+    R = R1 ++ R4.
+
+union(A, B, S@[T|C], R),
+        %A.is_lset(),
+        %B.is_lset(),
+        S.is_lset() ?=>                                           % 7b
+    log_d_vv("union :: un_7b"),
+    R2 = [ 
+        $eq(B, [T|N1]), 
+        $un(A, N1, N) 
+    ],
+    R4 = [ $eq([T|C], [T|N]) ],
+    
+    R = R2 ++ R4.
+
+union(A, B, S@[T|C], R),
+        %A.is_lset(),
+        %B.is_lset(),
+        S.is_lset() =>                                            % 7c
+    log_d_vv("union :: un_7c"),
+    R3 = [ 
+        $eq(A, [T|N1]), 
+        $eq(B, [T|N2]), 
+        $un(N1, N2, N) 
+    ],
+    R4 = [ $eq([T|C], [T|N]) ],
+    
+    R = R3 ++ R4.
+
+union(S1, S2, S3, R),
+        var(S1), var(S2), var(S3),
+        S1 !== S2 =>                                               % irr
+    log_d_vv("union :: un_irr"),
+    R = [ $un(S1, S2, S3) ].
+
+
+% ****** not membership.
+
+nin(X, S, R),
+        S.is_lset(),
+        S.is_emptyset() =>                                         % 1
+    log_d_vv("nin :: nin_1"),
+    R = [].  % sic.
+
+nin(X, S@[Y|A], R),
+        S.is_lset() =>                                             % 2
+    log_d_vv("nin :: nin_2"),
+    R = [ $neq(X,Y), $nin(X,A) ].
+
+nin(X, A, R),
+        var(A),
+        occur(A, X) =>                                             % 3
+    log_d_vv("nin :: nin_3"),
+    R = [].  % sic.
+
+%nin(A, X, R),
+%        var(A), ground(X) =>                                        % def_rev
+%    log_d_vv("nin :: nin_def_rev"),
+%    R = [ $nin(X, A) ].
+
+nin(X, A, R),
+        var(A),
+        not occur(A, X) =>                                         % def
+    log_d_vv("nin :: nin_def"),
+    R = [ $nin(X,A) ].
+
+
+
+% ****** or
+
+or(T1, T2, R) => or([T1, T2], R).
+
+or([], []) => true.
+or([T|_Tr], R) ?=> R = [T].
+or([_T|Tr], R) =>
+    log_d_vv("or :: or_l_3"),
+    or(Tr, R).
+
+
+
+% ****** AUX PREDICATES
+
+occur(X, Y), var(X) => membchk(X, vars(Y)).
+
+
+foreachnd_slice([X|Xs], Elem, Slice) ?=>
+    X = Elem, Xs = Slice.
+foreachnd_slice([X|Xs], Elem, Slice) =>
+    foreachnd_slice(Xs, Elem, SliceRight),
+    Slice = [X|SliceRight].
