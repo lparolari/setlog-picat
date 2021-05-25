@@ -17,7 +17,6 @@ fundamental forms of set designation and a number of primitive operations for se
 
 ## Table of Contents
 
-   * [<g-emoji class="g-emoji" alias="art" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f3a8.png">🎨</g-emoji> Features (Working on)](#-features-working-on)
    * [<g-emoji class="g-emoji" alias="floppy_disk" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f4be.png">💾</g-emoji> Install](#-install)
       * [Usage](#usage)
    * [<g-emoji class="g-emoji" alias="gift" fallback-src="https://github.githubassets.com/images/icons/emoji/unicode/1f381.png">🎁</g-emoji> Contributing](#-contributing)
@@ -31,12 +30,6 @@ fundamental forms of set designation and a number of primitive operations for se
 
 Below you will find everything you need to know about this setlog implementation. Start form the [install](#-install) 
 section if you want to play with the setlog solver, type in some formulas and see the magic.
-
-
-## :art: Features (Working on)
-
-TBD
-
 
 ## :floppy_disk: Install
 
